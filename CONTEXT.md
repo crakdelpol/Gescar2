@@ -400,13 +400,13 @@ Il file `docker-compose.yml` definisce tre container:
 | Root password | `root` |
 | App user | `gescar_user` |
 | App password | `gescar_pass` |
-| Database name | `gescar` |
+| Database name | `gescar_new_local` |
 | Porta | `3306` |
 
 ### DATABASE_URL per Docker
 
 ```env
-DATABASE_URL="mysql://gescar_user:gescar_pass@127.0.0.1:3306/gescar?serverVersion=8.0&charset=utf8mb4"
+DATABASE_URL="mysql://gescar_user:gescar_pass@127.0.0.1:3306/gescar_new_local?serverVersion=8.0&charset=utf8mb4"
 ```
 
 Impostare in `.env.local` (copiare da `.env.local.dist`).

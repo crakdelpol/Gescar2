@@ -2,34 +2,41 @@
 
 namespace App\DataFixtures;
 
-use App\DataFixtures\AnagraficaFixtures;
 use App\Entity\Anagrafica;
-use Doctrine\Bundle\FixturesBundle\Fixture;
-use Doctrine\Persistence\ObjectManager;
-use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use App\Entity\Patente;
-use DateTime;
+use Doctrine\Bundle\FixturesBundle\Fixture;
+use Doctrine\Common\DataFixtures\DependentFixtureInterface;
+use Doctrine\Persistence\ObjectManager;
 
-class PatenteFixtures extends Fixture implements DependentFixtureInterface 
+class PatenteFixtures extends Fixture implements DependentFixtureInterface
 {
+    // cliente_ref,        numero,      categorie,         scadenza
+    private array $dati = [
+        ['rossi-mario',      'SV001234',  ['B'],            '-10 days'],   // SCADUTA
+        ['bianchi-lucia',    'SV002345',  ['B'],            '+20 days'],   // IN SCADENZA
+        ['ferrari-giuseppe', 'SV003456',  ['B', 'BE'],      '+50 days'],   // IN AVVICINAMENTO
+        ['esposito-anna',    'SV004567',  ['B'],            '+180 days'],  // OK
+        ['conti-roberto',    'SV005678',  ['B', 'C', 'CE'], '+8 days'],    // IN SCADENZA
+        ['gallo-francesca',  'SV006789',  ['B'],            '+90 days'],   // OK
+    ];
+
     public function load(ObjectManager $manager): void
     {
-        $patente = new Patente();
-        $patente->setCategoriaPatente(array('B'));
-        $patente->setNumeroPatente('122332');
-        $patente->setNote('Note patente  ');
-        $patente->setDataScadenzaPatente(new DateTime('2025-07-22'));
-        // this reference returns the Anagrafica object created in AnagraficaFixtures
-        $patente->setIntestatario($this->getReference(AnagraficaFixtures::CLIENTE_TEST_1, Anagrafica::class));
+        foreach ($this->dati as $d) {
+            $p = new Patente();
+            $p->setNumeroPatente($d[1]);
+            $p->setCategoriaPatente($d[2]);
+            $p->setDataScadenzaPatente(new \DateTime($d[3]));
+            $p->setIntestatario($this->getReference($d[0], Anagrafica::class));
 
-        $manager->persist($patente);
+            $manager->persist($p);
+        }
+
         $manager->flush();
     }
 
     public function getDependencies(): array
     {
-        return [
-            AnagraficaFixtures::class,
-        ];
+        return [AnagraficaFixtures::class];
     }
 }

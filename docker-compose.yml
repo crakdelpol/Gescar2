@@ -7,7 +7,7 @@ services:
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: gescar
+      MYSQL_DATABASE: gescar_new_local
       MYSQL_USER: gescar_user
       MYSQL_PASSWORD: gescar_pass
     ports:

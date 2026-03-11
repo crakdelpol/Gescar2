@@ -106,15 +106,15 @@ final class ScadenzeController extends AbstractController
     private function queryAssicurazioni(string $da, string $a, EntityManagerInterface $em): array
     {
         return $em->getRepository(Assicurazione::class)
-            ->createQueryBuilder('asc')
-            ->join('asc.vettura', 'v')
+            ->createQueryBuilder('ass')
+            ->join('ass.vettura', 'v')
             ->join('v.intestatario', 'ana')
-            ->where('asc.dataScadenzaAssicurazione BETWEEN :da AND :a')
+            ->where('ass.dataScadenzaAssicurazione BETWEEN :da AND :a')
             ->setParameters(new ArrayCollection([
                 new Parameter('da', $da),
                 new Parameter('a', $a),
             ]))
-            ->orderBy('asc.dataScadenzaAssicurazione', 'ASC')
+            ->orderBy('ass.dataScadenzaAssicurazione', 'ASC')
             ->getQuery()
             ->getResult();
     }

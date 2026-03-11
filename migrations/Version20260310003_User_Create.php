@@ -14,8 +14,10 @@ use Doctrine\Migrations\AbstractMigration;
  * NOTA: Gli hash bcrypt esistenti nella tabella fos_user sono
  * compatibili con Symfony Security (stesso algoritmo).
  * Migrare manualmente i 3 utenti esistenti dopo questa migration.
+ *
+ * Deve girare PRIMA di Notifica_Create (004) che referenzia user.
  */
-final class Version20260310004_User_Create extends AbstractMigration
+final class Version20260310003_User_Create extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -35,9 +37,6 @@ final class Version20260310004_User_Create extends AbstractMigration
             PRIMARY KEY (id),
             UNIQUE INDEX UNIQ_IDENTIFIER_EMAIL (email)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
-
-        $this->addSql('-- ISTRUZIONE MANUALE: inserire qui gli utenti migrati da fos_user');
-        $this->addSql('-- INSERT INTO user (email, roles, password, nome, cognome) VALUES (...)');
     }
 
     public function down(Schema $schema): void
