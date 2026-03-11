@@ -1,0 +1,382 @@
+{% extends 'base.html.twig' %}
+
+    {% block body %}
+        <div class="row">
+			<div class="col-md-12 col-sm-12 col-xs-12 mt-3">
+
+                <div class="titolo">
+                    <h3>
+                        Ricerca per scadenza dal
+                        {% if dataScadenza is not empty %}
+                            {{ dataScadenza|date('d/m/Y') }}
+                        {% endif %}
+                        al
+                        {% if aDataScadenza is not empty %}
+                            {{ aDataScadenza|date('d/m/Y') }}
+                        {% endif %}
+                    </h3>
+                </div>
+                <div class="x_panel">
+                    <div class="row">    
+                        <div class="col-sm-1">
+                            <div class="form-group">
+                            {{ form_label(search_form.dataScadenza ) }}
+                            </div>
+                        </div>      
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                            {{ form_widget(search_form.dataScadenza, { 'attr': {'class': 'mx-2','style':'width:200px'} } ) }}
+                            </div>
+                        </div>
+                        <div class="col-sm-1">
+                            <div class="form-group">
+                            {{ form_label(search_form.aDataScadenza ) }}
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="form-group">
+                            {{ form_widget(search_form.aDataScadenza, { 'attr': {'class': 'mx-2','style':'width:200px'} } ) }}
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div><br><br>
+                <div class="row salva">
+                    <div class="col-md-8 order-md-1">
+                        {{ form_widget(search_form.cerca) }}
+                            {{ form_end(search_form) }}
+                    </div>
+                </div>
+			</div>
+			
+        </div>
+            
+        <hr/>
+        <div id="revisioni" class="row">
+            <div class="col-md-12 order-md-1">
+
+                <div class="card-title">
+                    <h3 class="d-inline-block">Revisioni</h3>
+                    {# <a class=" mx-5 btn btn-sm btn-info d-inline-block" target="_blank" style="position:absolute;right:0;"
+                       href="{{ path('_stampa_revisioni', { 'dataScadenza': dataScadenza , 'aDataScadenza' : aDataScadenza }) }}">
+                        <span class="oi oi-print"></span>  Stampa
+                    </a> #}
+                </div>
+
+
+                <div class="table-responsive">
+                    {% if vetture is not empty %}
+                        <table class="records_list table table-striped">
+                            <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Telefono</th>
+                                <th>Targa</th>
+                                <th>Marca/Modello</th>
+                                <th>Scadenza Revisione</th>
+                                <th>Note</th>
+                                <th>Azioni</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for vettura in vetture %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ path('app_anagrafica_show', { 'id': vettura.intestatario.id }) }}">
+                                            {{ vettura.intestatario.cognome | capitalize}} {{ vettura.intestatario.nome | capitalize}}
+                                        </a>
+                                    </td>
+                                    <td>{{ vettura.intestatario.telefono }}</td>
+                                    <td>{{ vettura.targa }}</td>
+                                    <td>{{ vettura.marca }} {{ vettura.modello }}</td>
+                                    <td>
+                                        {% if vettura.dataScadenzaRevisione is not empty %}
+                                            {{ vettura.dataScadenzaRevisione|date('d/m/Y') }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ vettura.note }}</td>
+                                    <td>
+                                        {% if vettura.id is not empty %}
+                                        <a class="btn btn-warning btn-sm" href="{{ path('app_vettura_edit', { 'id': vettura.id }) }}">
+                                            <span class="oi oi-pencil"></span> Modifica
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>Nessuna vettura trovata</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div id="assicurazioni" class="row">
+            <div class="col-md-12 order-md-1">
+
+                <div class="card-title">
+                    <h3 class="d-inline-block">Assicurazioni</h3>
+                    {#  <a class=" mx-5 btn btn-sm btn-info d-inline-block" target="_blank" style="position:absolute;right:0;"
+                       href="{{ path('_stampa_assicurazioni', { 'dataScadenza': dataScadenza , 'aDataScadenza' : aDataScadenza }) }}">
+                        <span class="oi oi-print"></span>  Stampa
+                    </a> #}
+                </div>
+
+                <div class="table-responsive">
+                    {% if assicurazioni is not empty %}
+                        <table class="records_list table table-striped">
+                            <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Telefono</th>
+                                <th>Targa</th>
+                                <th>Data Scadenza</th>
+                                <th>Note</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for assicurazione in assicurazioni %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ path('app_anagrafica_show', { 'id': assicurazione.vettura.intestatario.id }) }}">
+                                            {{ assicurazione.vettura.intestatario.cognome | capitalize }} {{ assicurazione.vettura.intestatario.nome | capitalize}}
+                                        </a>
+                                    </td>
+                                    <td>{{ assicurazione.vettura.intestatario.telefono }}</td>
+                                    <td>{{ assicurazione.vettura.targa }}</td>
+                                    <td>
+                                        {% if assicurazione.dataScadenzaAssicurazione is not empty %}
+                                            {{ assicurazione.dataScadenzaAssicurazione|date('d/m/Y') }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ assicurazione.note }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+
+                    {% else %}
+                        <p>Nessuna assicurazione trovata</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div id="bolli" class="row">
+            <div class="col-md-12 order-md-1">
+
+                <div class="card-title">
+                    <h3 class="d-inline-block">Bolli</h3>
+                   {# <a class=" mx-5 btn btn-sm btn-info d-inline-block" target="_blank" style="position:absolute;right:0;"
+                       href="{{ path('_stampa_bolli', { 'dataScadenza': dataScadenza , 'aDataScadenza' : aDataScadenza }) }}">
+                        <span class="oi oi-print"></span>  Stampa
+                    </a> #}
+                </div>
+
+                <div class="table-responsive">
+                    {% if bolli is not empty %}
+                        <table class="records_list table table-striped">
+                            <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Telefono</th>
+                                <th>Targa</th>
+                                <th>Tipo Veicolo</th>
+                                <th>Data Scadenza</th>
+                                <th>Note</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for bollo in bolli %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ path('app_anagrafica_show', { 'id': bollo.vettura.intestatario.id }) }}">
+                                            {{ bollo.vettura.intestatario.cognome | capitalize}} {{ bollo.vettura.intestatario.nome | capitalize}}
+                                        </a>
+                                    </td>
+                                    <td>{{ bollo.vettura.intestatario.telefono }}</td>
+                                    <td>{{ bollo.vettura.targa }}</td>
+                                    <td>{{ bollo.vettura.tipo }}</td>
+                                    <td>
+                                        {% if bollo.dataScadenzaBollo is not empty %}
+                                            {{ bollo.dataScadenzaBollo|date('d/m/Y') }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ bollo.note }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>Nessun bollo trovato</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div id="patenti" class="row">
+            <div class="col-md-12 order-md-1">
+
+                <div class="card-title">
+                    <h3 class="d-inline-block">Patenti</h3>
+                   {# <a class=" mx-5 btn btn-sm btn-info d-inline-block" target="_blank" style="position:absolute;right:0;"
+                       href="{{ path('_stampa_patenti', { 'dataScadenza': dataScadenza , 'aDataScadenza' : aDataScadenza }) }}">
+                        <span class="oi oi-print"></span>  Stampa
+                    </a>#}
+                </div>
+
+                <div class="table-responsive">
+                    {% if patenti is not empty %}
+                        <table class="records_list table table-striped">
+                            <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Telefono</th>
+                                <th>Numero Patente</th>
+                                <th>Categoria Patente</th>
+                                <th>Scadenza Patente</th>
+                                <th>Note</th>
+                                <th>Azioni</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for patente in patenti %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ path('app_anagrafica_show', { 'id': patente.intestatario.id }) }}">
+                                            {{ patente.intestatario.cognome | capitalize}} {{ patente.intestatario.nome | capitalize}}
+                                        </a>
+                                    </td>
+                                    <td>{{ patente.intestatario.telefono }}</td>
+                                    <td>{{ patente.numeroPatente }}</td>
+                                    <td>
+                                        {% for categoria in patente.categoriaPatente %}
+                                            {{ categoria }}
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% if patente.dataScadenzaPatente is not empty %}
+                                            {{ patente.dataScadenzaPatente|date('d/m/Y') }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ patente.note }}</td>
+                                    <td>
+                                        {% if patente.id is not empty %}
+                                        <a class="btn btn-warning mr-2 btn-sm" href="{{ path('app_patente_edit', { 'id': patente.id }) }}">
+                                            <span class="oi oi-pencil"></span> Modifica
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <p>Nessuna patente trovata</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+<style>
+#revisioni
+{
+    
+    display:block;
+}
+#assicurazioni
+{
+    
+    display:block;
+}
+#bolli
+{
+    
+    display:block;
+}
+#patenti
+{
+    
+    display:block;
+}
+</style>
+<script>
+$("#bottone_revisioni").click(function(){
+
+        if ( $( this ).hasClass( "btn-default" ) ) {
+                $("#bottone_tutti").removeClass( "btn-success" ).addClass( "btn-default" );
+                $("#bottone_revisioni").removeClass( "btn-default" ).addClass( "btn-success" );
+                $("#revisioni").show();
+                $("#assicurazioni").hide();
+                $("#patenti").hide();
+                $("#bolli").hide();
+                $("#bottone_bolli").removeClass( "btn-success" ).addClass( "btn-default" );
+                $("#bottone_patenti").removeClass( "btn-success" ).addClass( "btn-default" );
+                $("#bottone_assicurazioni").removeClass( "btn-success" ).addClass( "btn-default" );
+            }
+
+
+        
+      
+    });
+$("#bottone_bolli").click(function(){
+        if ( $( this ).hasClass( "btn-default" ) ) {
+            $("#bottone_tutti").removeClass( "btn-success" ).addClass( "btn-default" );
+            $("#bottone_bolli").removeClass( "btn-default" ).addClass( "btn-success" );
+            $("#bolli").show();
+            $("#assicurazioni").hide();
+            $("#revisioni").hide();
+            $("#patenti").hide();
+            $("#bottone_revisioni").removeClass( "btn-success" ).addClass( "btn-default" );
+            $("#bottone_patenti").removeClass( "btn-success" ).addClass( "btn-default" );
+            $("#bottone_assicurazioni").removeClass( "btn-success" ).addClass( "btn-default" );
+            }
+        
+    });
+
+$("#bottone_assicurazioni").click(function(){
+
+        if ( $( this ).hasClass( "btn-default" ) ) {
+            $("#bottone_tutti").removeClass( "btn-success" ).addClass( "btn-default" );
+            $("#bottone_assicurazioni").removeClass( "btn-default" ).addClass( "btn-success" );
+            $("#assicurazioni").show();
+            $("#revisioni").hide();
+            $("#patenti").hide();
+            $("#bolli").hide();
+            $("#bottone_bolli").removeClass( "btn-success" ).addClass( "btn-default" );
+            $("#bottone_patenti").removeClass( "btn-success" ).addClass( "btn-default" );
+            $("#bottone_revisioni").removeClass( "btn-success" ).addClass( "btn-default" );
+            }
+
+    });
+$("#bottone_patenti").click(function(){
+        if ( $( this ).hasClass( "btn-default" ) ) {
+            $("#bottone_tutti").removeClass( "btn-success" ).addClass( "btn-default" );
+            $("#bottone_patenti").removeClass( "btn-default" ).addClass( "btn-success" );
+            $("#patenti").show();
+            $("#revisioni").hide();
+            $("#assicurazioni").hide();
+            $("#bolli").hide();
+            $("#bottone_bolli").removeClass( "btn-success" ).addClass( "btn-default" );
+            $("#bottone_revisioni").removeClass( "btn-success" ).addClass( "btn-default" );
+            $("#bottone_assicurazioni").removeClass( "btn-success" ).addClass( "btn-default" );
+            }
+
+    });
+$("#bottone_tutti").click(function(){
+        if ( $( this ).hasClass( "btn-default" ) ) {
+            $("#bolli").show();
+            $("#revisioni").show();
+            $("#assicurazioni").show();
+            $("#patenti").show();
+            $("#bottone_patenti").removeClass( "btn-success" ).addClass( "btn-default" );
+            $("#bottone_bolli").removeClass( "btn-success" ).addClass( "btn-default" );
+            $("#bottone_revisioni").removeClass( "btn-success" ).addClass( "btn-default" );
+            $("#bottone_assicurazioni").removeClass( "btn-success" ).addClass( "btn-default" );
+            $("#bottone_tutti").removeClass( "btn-default" ).addClass( "btn-success" );
+        }
+    });
+</script>
+
+    {% endblock %}

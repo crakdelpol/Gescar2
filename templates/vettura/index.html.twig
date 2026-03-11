@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Vettura index{% endblock %}
+
+{% block body %}
+    <h1>Vettura index</h1>
+
+    <table class="table table-striped table-sm">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Targa</th>
+                <th>NumeroTelaio</th>
+                <th>Tipo</th>
+                <th>Marca</th>
+                <th>Modello</th>
+                <th>Carburante</th>
+                <th>DataUltimaRevisione</th>
+                <th>DataScadenzaRevisione</th>
+                <th>Data Scadenza Impianto</th>
+                <th>Note</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for vettura in vetturas %}
+            <tr>
+                <td>{{ vettura.id }}</td>
+                <td>{{ vettura.targa }}</td>
+                <td>{{ vettura.numeroTelaio }}</td>
+                <td>{{ vettura.tipo }}</td>
+                <td>{{ vettura.marca }}</td>
+                <td>{{ vettura.modello }}</td>
+                <td>{{ vettura.carburante }}</td>
+                <td>{{ vettura.dataUltimaRevisione ? vettura.dataUltimaRevisione|date('Y-m-d') : '' }}</td>
+                <td>{{ vettura.dataScadenzaRevisione ? vettura.dataScadenzaRevisione|date('Y-m-d') : '' }}</td>
+                <td>{{ vettura.dataScadenzaImpianto ? vettura.dataScadenzaImpianto|date('Y-m-d') : '' }}</td>
+                <td>{{ vettura.note }}</td>
+                <td>
+                    <a href="{{ path('app_vettura_show', {'id': vettura.id}) }}">show</a>
+                    <a href="{{ path('app_vettura_edit', {'id': vettura.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="10">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_vettura_new') }}">Create new</a>
+{% endblock %}

@@ -1,0 +1,39 @@
+.table td {
+    padding: .35rem;
+    vertical-align: middle;
+    font-size:12px;
+}
+ .table  th {
+ 	padding: .35rem;
+    font-size:12px;
+    vertical-align: middle;
+}
+body{
+    background-color: #F9F9F9;
+}
+.table {
+  
+    margin-bottom: 2rem;
+
+}
+.x_panel {
+    width: 100%;
+    padding: 15px 17px;
+    display: inline-block;
+    background: #fff;
+    border: 1px solid #E6E9ED;
+    -webkit-column-break-inside: avoid;
+    -moz-column-break-inside: avoid;
+    column-break-inside: avoid;
+    opacity: 1;
+    transition: all .2s ease;
+}
+.titolo
+{
+	padding-top: 15px;
+	padding-bottom: 15px;
+}
+.salva
+{
+	padding-bottom: 20px;
+}

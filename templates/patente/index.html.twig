@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Patente index{% endblock %}
+
+{% block body %}
+    <h1>Patente index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>NumeroPatente</th>
+                <th>CategoriaPatente</th>
+                <th>DataScadenzaPatente</th>
+                <th>Note</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for patente in patentes %}
+            <tr>
+                <td>{{ patente.id }}</td>
+                <td>{{ patente.numeroPatente }}</td>
+                <td>{{ patente.categoriaPatente ? patente.categoriaPatente|json_encode : '' }}</td>
+                <td>{{ patente.dataScadenzaPatente ? patente.dataScadenzaPatente|date('Y-m-d') : '' }}</td>
+                <td>{{ patente.note }}</td>
+                <td>
+                    <a href="{{ path('app_patente_show', {'id': patente.id}) }}">show</a>
+                    <a href="{{ path('app_patente_edit', {'id': patente.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="6">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_patente_new') }}">Create new</a>
+{% endblock %}

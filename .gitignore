@@ -1,0 +1,46 @@
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+###< phpunit/phpunit ###
+
+###> squizlabs/php_codesniffer ###
+/.phpcs-cache
+###< squizlabs/php_codesniffer ###
+
+# IDE
+/.idea/
+/.vscode/
+*.sw*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Composer
+/composer.phar
+
+# Symfony cache and logs
+/var/cache/
+/var/log/
+/var/sessions/
+
+# Database dumps (mai committare dump con dati reali)
+*.sql.gz
+DumpGescar*.sql
+dump_*.sql
+
+# Uploads utenti (se presenti)
+/public/uploads/
+
+# Build assets
+/public/build/
+/node_modules/

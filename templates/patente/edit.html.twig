@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Edit Patente{% endblock %}
+
+{% block body %}
+    <h1>Edit Patente</h1>
+
+    {{ include('patente/_form.html.twig', {'button_label': 'Update'}) }}
+
+    <a href="{{ path('app_patente_index') }}">back to list</a>
+
+    {{ include('patente/_delete_form.html.twig') }}
+{% endblock %}

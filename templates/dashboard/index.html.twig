@@ -1,0 +1,202 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard – Gescar{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dashboard Scadenze</h1>
+    <small class="text-muted">Aggiornata al {{ 'now'|date('d/m/Y H:i') }}</small>
+</div>
+
+{# ─── Card riepilogo ───────────────────────────────────────────────── #}
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card border-danger h-100">
+            <div class="card-body text-center">
+                <div class="display-5 fw-bold text-danger">{{ revisioni_scadute|length }}</div>
+                <div class="small text-muted mt-1">Revisioni scadute</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-warning h-100">
+            <div class="card-body text-center">
+                <div class="display-5 fw-bold text-warning">{{ revisioni_30gg|length }}</div>
+                <div class="small text-muted mt-1">Revisioni entro 30 gg</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-warning h-100">
+            <div class="card-body text-center">
+                <div class="display-5 fw-bold text-warning">{{ assicurazioni_30gg|length }}</div>
+                <div class="small text-muted mt-1">Assicurazioni entro 30 gg</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card border-info h-100">
+            <div class="card-body text-center">
+                <div class="display-5 fw-bold text-info">{{ bolli_mese_corrente|length }}</div>
+                <div class="small text-muted mt-1">Bolli nel mese corrente</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ─── Revisioni scadute ───────────────────────────────────────────── #}
+{% if revisioni_scadute is not empty %}
+<div class="mb-4">
+    <h5 class="text-danger">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-exclamation-triangle-fill me-1" viewBox="0 0 16 16">
+            <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2"/>
+        </svg>
+        Revisioni già scadute ({{ revisioni_scadute|length }})
+    </h5>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-danger">
+                <tr>
+                    <th>Cliente</th>
+                    <th>Targa</th>
+                    <th>Veicolo</th>
+                    <th>Scadenza revisione</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for v in revisioni_scadute %}
+                <tr>
+                    <td>{{ v.intestatario.cognome }} {{ v.intestatario.nome }}</td>
+                    <td><code>{{ v.targa }}</code></td>
+                    <td>{{ v.marca }} {{ v.modello }}</td>
+                    <td class="text-danger fw-semibold">{{ v.dataScadenzaRevisione ? v.dataScadenzaRevisione|date('d/m/Y') : '–' }}</td>
+                    <td>
+                        <a href="{{ path('app_vettura_show', {id: v.id}) }}" class="btn btn-sm btn-outline-secondary">
+                            Apri
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{# ─── Revisioni in scadenza 30 gg ─────────────────────────────────── #}
+{% if revisioni_30gg is not empty %}
+<div class="mb-4">
+    <h5 class="text-warning">
+        Revisioni in scadenza nei prossimi 30 giorni ({{ revisioni_30gg|length }})
+    </h5>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-warning">
+                <tr>
+                    <th>Cliente</th>
+                    <th>Targa</th>
+                    <th>Veicolo</th>
+                    <th>Scadenza revisione</th>
+                    <th>Telefono</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for v in revisioni_30gg %}
+                <tr>
+                    <td>{{ v.intestatario.cognome }} {{ v.intestatario.nome }}</td>
+                    <td><code>{{ v.targa }}</code></td>
+                    <td>{{ v.marca }} {{ v.modello }}</td>
+                    <td>{{ v.dataScadenzaRevisione|date('d/m/Y') }}</td>
+                    <td>{{ v.intestatario.telefono ?? '–' }}</td>
+                    <td>
+                        <a href="{{ path('app_vettura_show', {id: v.id}) }}" class="btn btn-sm btn-outline-secondary">
+                            Apri
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{# ─── Assicurazioni in scadenza 30 gg ────────────────────────────── #}
+{% if assicurazioni_30gg is not empty %}
+<div class="mb-4">
+    <h5 class="text-warning">
+        Assicurazioni in scadenza nei prossimi 30 giorni ({{ assicurazioni_30gg|length }})
+    </h5>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-warning">
+                <tr>
+                    <th>Cliente</th>
+                    <th>Targa</th>
+                    <th>Scadenza assicurazione</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for a in assicurazioni_30gg %}
+                <tr>
+                    <td>{{ a.vettura.intestatario.cognome }} {{ a.vettura.intestatario.nome }}</td>
+                    <td><code>{{ a.vettura.targa }}</code></td>
+                    <td>{{ a.dataScadenzaAssicurazione|date('d/m/Y') }}</td>
+                    <td>
+                        <a href="{{ path('app_assicurazione_show', {id: a.id}) }}" class="btn btn-sm btn-outline-secondary">
+                            Apri
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{# ─── Bolli nel mese corrente ──────────────────────────────────────── #}
+{% if bolli_mese_corrente is not empty %}
+<div class="mb-4">
+    <h5 class="text-info">
+        Bolli in scadenza nel mese corrente ({{ bolli_mese_corrente|length }})
+    </h5>
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead class="table-info">
+                <tr>
+                    <th>Cliente</th>
+                    <th>Targa</th>
+                    <th>Scadenza bollo</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for b in bolli_mese_corrente %}
+                <tr>
+                    <td>{{ b.vettura.intestatario.cognome }} {{ b.vettura.intestatario.nome }}</td>
+                    <td><code>{{ b.vettura.targa }}</code></td>
+                    <td>{{ b.dataScadenzaBollo|date('d/m/Y') }}</td>
+                    <td>
+                        <a href="{{ path('app_bollo_show', {id: b.id}) }}" class="btn btn-sm btn-outline-secondary">
+                            Apri
+                        </a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if revisioni_scadute is empty and revisioni_30gg is empty and assicurazioni_30gg is empty and bolli_mese_corrente is empty %}
+    <div class="alert alert-success mt-4" role="alert">
+        <strong>Tutto in regola!</strong> Nessuna scadenza urgente al momento.
+    </div>
+{% endif %}
+
+{% endblock %}

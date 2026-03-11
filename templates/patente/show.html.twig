@@ -1,0 +1,38 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Patente{% endblock %}
+
+{% block body %}
+    <h1>Patente</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ patente.id }}</td>
+            </tr>
+            <tr>
+                <th>NumeroPatente</th>
+                <td>{{ patente.numeroPatente }}</td>
+            </tr>
+            <tr>
+                <th>CategoriaPatente</th>
+                <td>{{ patente.categoriaPatente ? patente.categoriaPatente|json_encode : '' }}</td>
+            </tr>
+            <tr>
+                <th>DataScadenzaPatente</th>
+                <td>{{ patente.dataScadenzaPatente ? patente.dataScadenzaPatente|date('Y-m-d') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Note</th>
+                <td>{{ patente.note }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_patente_index') }}">back to list</a>
+
+    <a href="{{ path('app_patente_edit', {'id': patente.id}) }}">edit</a>
+
+    {{ include('patente/_delete_form.html.twig') }}
+{% endblock %}

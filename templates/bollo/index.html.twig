@@ -1,0 +1,37 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Bollo index{% endblock %}
+
+{% block body %}
+    <h1>Bollo index</h1>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>DataScadenzaBollo</th>
+                <th>Note</th>
+                <th>actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for bollo in bollos %}
+            <tr>
+                <td>{{ bollo.id }}</td>
+                <td>{{ bollo.dataScadenzaBollo ? bollo.dataScadenzaBollo|date('Y-m-d') : '' }}</td>
+                <td>{{ bollo.note }}</td>
+                <td>
+                    <a href="{{ path('app_bollo_show', {'id': bollo.id}) }}">show</a>
+                    <a href="{{ path('app_bollo_edit', {'id': bollo.id}) }}">edit</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">no records found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_bollo_new') }}">Create new</a>
+{% endblock %}

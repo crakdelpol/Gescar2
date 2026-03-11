@@ -1,0 +1,62 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Vettura{% endblock %}
+
+{% block body %}
+    <h1>Vettura</h1>
+
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Id</th>
+                <td>{{ vettura.id }}</td>
+            </tr>
+            <tr>
+                <th>Targa</th>
+                <td>{{ vettura.targa }}</td>
+            </tr>
+            <tr>
+                <th>NumeroTelaio</th>
+                <td>{{ vettura.numeroTelaio }}</td>
+            </tr>
+            <tr>
+                <th>Tipo</th>
+                <td>{{ vettura.tipo }}</td>
+            </tr>
+            <tr>
+                <th>Marca</th>
+                <td>{{ vettura.marca }}</td>
+            </tr>
+            <tr>
+                <th>Modello</th>
+                <td>{{ vettura.modello }}</td>
+            </tr>
+            <tr>
+                <th>Carburante</th>
+                <td>{{ vettura.carburante }}</td>
+            </tr>
+            <tr>
+                <th>Data Ultima Revisione</th>
+                <td>{{ vettura.dataUltimaRevisione ? vettura.dataUltimaRevisione|date('Y-m-d') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Data Scadenza Revisione</th>
+                <td>{{ vettura.dataScadenzaRevisione ? vettura.dataScadenzaRevisione|date('Y-m-d') : '' }}</td>
+            </tr>
+                        <tr>
+                <th>Data Scadenza Impianto</th>
+                <td>{{ vettura.dataScadenzaImpianto ? vettura.dataScadenzaImpianto|date('Y-m-d') : '' }}</td>
+            </tr>
+            <tr>
+                <th>Note</th>
+                <td>{{ vettura.note }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_vettura_index') }}">back to list</a>
+
+    <a href="{{ path('app_vettura_edit', {'id': vettura.id}) }}">edit</a>
+
+    {{ include('vettura/_delete_form.html.twig') }}
+{% endblock %}

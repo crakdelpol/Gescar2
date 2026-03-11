@@ -1,0 +1,13 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nuova Anagrafica{% endblock %}
+
+{% block body %}
+
+    <h1>Create new Anagrafica</h1>
+
+    {{ include('anagrafica/_form.html.twig') }}
+
+    <a href="{{ path('app_anagrafica_index') }}">back to list</a>
+
+{% endblock %}
