@@ -310,31 +310,58 @@ $notificaService->getRecenti($giorni = 7);
 
 ## 13. Setup locale da zero
 
+### Con Docker (metodo consigliato)
+
 ```bash
 # 1. Clone
 git clone https://github.com/CarloGagliolo/Gescar2.git && cd Gescar2
 
-# 2. Dipendenze
+# 2. Avvia container Docker (MySQL 8.0 + phpMyAdmin + Mailpit)
+make up
+# oppure: docker compose up -d
+
+# 3. Dipendenze PHP
+make install
+# oppure: composer install
+
+# 4. Crea .env.local dal template
+make env
+# oppure: cp .env.local.dist .env.local
+# → Genera APP_SECRET: php -r "echo bin2hex(random_bytes(16));"
+# → DATABASE_URL già preconfigurata per Docker in .env.local.dist
+
+# 5. Database (attendi ~10s che MySQL sia pronto)
+make db-create
+make migrate
+# oppure:
+# php bin/console doctrine:database:create
+# php bin/console doctrine:migrations:migrate
+
+# 6. Primo utente admin
+php bin/console security:hash-password
+# poi via make db-shell o phpMyAdmin (http://localhost:8080):
+# INSERT INTO user (email, roles, password, nome, cognome, is_active)
+# VALUES ('admin@gescar.local', '["ROLE_SUPER_ADMIN"]', '<HASH>', 'Carlo', 'Admin', 1);
+
+# 7. (Opzionale) Dati di test
+make fixtures
+
+# 8. Avvio server
+make server
+# oppure: symfony server:start
+# oppure: php -S localhost:8000 -t public/
+```
+
+### Senza Docker (MySQL locale già installato)
+
+```bash
+git clone https://github.com/CarloGagliolo/Gescar2.git && cd Gescar2
 composer install
-
-# 3. Crea .env.local (NON committare mai questo file)
-cat > .env.local << EOF
-APP_ENV=dev
-APP_SECRET=$(php -r "echo bin2hex(random_bytes(16));")
-DATABASE_URL="mysql://root:PASSWORD@127.0.0.1:3306/gescar?serverVersion=8.4&charset=utf8mb4"
-EOF
-
-# 4. Database
+cp .env.local.dist .env.local
+# Modifica .env.local con DATABASE_URL corretto per la tua installazione MySQL
 php bin/console doctrine:database:create
 php bin/console doctrine:migrations:migrate
-
-# 5. Primo utente admin
-php bin/console security:hash-password
-# poi: INSERT INTO user (email, roles, password, nome) VALUES ('...', '["ROLE_SUPER_ADMIN"]', 'HASH', 'Carlo');
-
-# 6. Avvio
 symfony server:start
-# oppure: php -S localhost:8000 -t public/
 ```
 
 ---
@@ -350,3 +377,93 @@ symfony server:start
 | `src/Entity/Notifica.php` | Costanti tipo/canale/esito |
 | `config/packages/security.yaml` | Configurazione autenticazione |
 | `migrations/` | Tutte le migration pendenti |
+
+---
+
+## 15. Ambiente Docker (sviluppo locale)
+
+### Infrastruttura
+
+Il file `docker-compose.yml` definisce tre container:
+
+| Container | Image | Porta host | Scopo |
+|---|---|---|---|
+| `gescar_db` | `mysql:8.0` | `3306` | Database MySQL |
+| `gescar_pma` | `phpmyadmin:latest` | `8080` | GUI database |
+| `gescar_mail` | `axllent/mailpit:latest` | `8025` (web) / `1025` (smtp) | Catch-all email test |
+
+### Credenziali DB
+
+| Parametro | Valore |
+|---|---|
+| Root user | `root` |
+| Root password | `root` |
+| App user | `gescar_user` |
+| App password | `gescar_pass` |
+| Database name | `gescar` |
+| Porta | `3306` |
+
+### DATABASE_URL per Docker
+
+```env
+DATABASE_URL="mysql://gescar_user:gescar_pass@127.0.0.1:3306/gescar?serverVersion=8.0&charset=utf8mb4"
+```
+
+Impostare in `.env.local` (copiare da `.env.local.dist`).
+
+### Quick start con Docker
+
+```bash
+# 1. Avvia tutti i container
+docker compose up -d
+
+# 2. Attendi ~10 secondi che MySQL sia pronto, poi:
+php bin/console doctrine:database:create
+php bin/console doctrine:migrations:migrate
+
+# 3. Carica dati di test (opzionale)
+php bin/console doctrine:fixtures:load --no-interaction
+
+# 4. Crea primo utente admin (SQL manuale)
+php bin/console security:hash-password
+# poi inserisci via phpMyAdmin o db-shell:
+# INSERT INTO user (email, roles, password, nome, cognome, is_active)
+# VALUES ('admin@gescar.local', '["ROLE_SUPER_ADMIN"]', '<HASH>', 'Carlo', 'Admin', 1);
+
+# 5. Avvia server Symfony
+symfony server:start
+# oppure: php -S localhost:8000 -t public/
+```
+
+### Makefile — comandi rapidi
+
+```bash
+make up           # docker compose up -d
+make down         # docker compose down
+make restart      # down + up
+make logs         # docker compose logs -f
+make db-shell     # mysql shell come gescar_user
+make db-root      # mysql shell come root
+make install      # composer install
+make env          # crea .env.local dal template (se non esiste)
+make db-create    # php bin/console doctrine:database:create
+make migrate      # php bin/console doctrine:migrations:migrate
+make migrate-diff # genera nuova migration da diff Entity/DB
+make fixtures     # carica DataFixtures (⚠️ svuota il DB)
+make db-reset     # drop → create → migrate → fixtures
+make cache        # php bin/console cache:clear
+make routes       # php bin/console debug:router
+make entities     # php bin/console doctrine:schema:validate
+make server       # php -S localhost:8000 -t public/
+make test         # php bin/phpunit
+make open-app     # apre http://localhost:8000 (Windows)
+make open-pma     # apre http://localhost:8080 (phpMyAdmin)
+make open-mail    # apre http://localhost:8025 (Mailpit)
+```
+
+### Note importanti
+
+- Il volume `gescar_db_data` è **persistente**: i dati sopravvivono a `docker compose down`. Usare `docker compose down -v` per distruggerlo.
+- Il MySQL container usa `--default-authentication-plugin=mysql_native_password` per compatibilità con il driver PDO di PHP.
+- Mailpit cattura tutte le email inviate via SMTP su porta 1025. Non recapita email reali.
+- `.env.local` non viene mai committato (è in `.gitignore`). Usare `.env.local.dist` come template.

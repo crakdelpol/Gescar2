@@ -1,0 +1,30 @@
+# Dipendenze PHP (installate dentro il container, non copiate)
+/vendor/
+
+# Cache e log Symfony
+/var/cache/
+/var/log/
+/var/sessions/
+
+# Ambiente locale (contiene segreti reali)
+/.env.local
+/.env.*.local
+
+# Git
+/.git/
+/.github/
+
+# IDE
+/.idea/
+/.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+/node_modules/
+
+# Dump DB (mai nel container)
+*.sql
+*.sql.gz
