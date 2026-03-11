@@ -1,0 +1,101 @@
+{% extends 'base.html.twig' %}
+{% block title %}Registro Notifiche – Gescar{% endblock %}
+
+{% block body %}
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Registro Notifiche</h1>
+    <a href="{{ path('app_notifica_new') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i> Nuova notifica
+    </a>
+</div>
+
+{# Filtro periodo #}
+<form method="get" class="mb-3 d-flex align-items-center gap-2">
+    <label class="form-label mb-0">Ultimi</label>
+    <select name="giorni" class="form-select form-select-sm w-auto" onchange="this.form.submit()">
+        {% for g in [7, 14, 30, 60, 90] %}
+            <option value="{{ g }}" {{ giorni == g ? 'selected' : '' }}>{{ g }} giorni</option>
+        {% endfor %}
+    </select>
+</form>
+
+{% for label, messages in app.flashes %}
+    {% for msg in messages %}
+        <div class="alert alert-{{ label == 'success' ? 'success' : 'danger' }} alert-dismissible">
+            {{ msg }} <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endfor %}
+
+{% if notifiche is empty %}
+    <p class="text-muted">Nessuna notifica nel periodo selezionato.</p>
+{% else %}
+<div class="table-responsive">
+    <table class="table table-sm table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Data/Ora</th>
+                <th>Cliente</th>
+                <th>Veicolo</th>
+                <th>Tipo</th>
+                <th>Canale</th>
+                <th>Esito</th>
+                <th>Note</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for n in notifiche %}
+            <tr>
+                <td class="text-nowrap">{{ n.dataInvio|date('d/m/Y H:i') }}</td>
+                <td>
+                    <a href="{{ path('app_anagrafica_show', {id: n.anagrafica.id}) }}">
+                        {{ n.anagrafica.cognome }} {{ n.anagrafica.nome }}
+                    </a>
+                </td>
+                <td>{{ n.vettura ? n.vettura.targa : '–' }}</td>
+                <td>
+                    {% set tipo_badge = {
+                        'revisione':    'primary',
+                        'assicurazione':'warning',
+                        'bollo':        'info',
+                        'patente':      'secondary'
+                    } %}
+                    <span class="badge bg-{{ tipo_badge[n.tipoScadenza] ?? 'light text-dark' }}">
+                        {{ n.tipoScadenza|capitalize }}
+                    </span>
+                </td>
+                <td>{{ n.canale|capitalize }}</td>
+                <td>
+                    {% set esito_badge = {
+                        'inviata':          'success',
+                        'non_risponde':     'warning',
+                        'rinnovato':        'primary',
+                        'non_interessato':  'secondary'
+                    } %}
+                    {% if n.esito %}
+                        <span class="badge bg-{{ esito_badge[n.esito] ?? 'secondary' }}">
+                            {{ n.esito|replace({'_': ' '})|capitalize }}
+                        </span>
+                    {% else %}
+                        <span class="text-muted">–</span>
+                    {% endif %}
+                </td>
+                <td class="text-truncate" style="max-width:200px" title="{{ n.note }}">{{ n.note }}</td>
+                <td class="text-nowrap">
+                    <a href="{{ path('app_notifica_edit', {id: n.id}) }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="post" action="{{ path('app_notifica_delete', {id: n.id}) }}" class="d-inline"
+                          onsubmit="return confirm('Eliminare questa notifica?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ n.id) }}">
+                        <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

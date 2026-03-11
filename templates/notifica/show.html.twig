@@ -1,0 +1,30 @@
+{% extends 'base.html.twig' %}
+{% block title %}Notifica {{ notifica.id }} – Gescar{% endblock %}
+
+{% block body %}
+<div class="pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Dettaglio Notifica #{{ notifica.id }}</h1>
+</div>
+<dl class="row">
+    <dt class="col-sm-3">Data/ora</dt>
+    <dd class="col-sm-9">{{ notifica.dataInvio|date('d/m/Y H:i') }}</dd>
+    <dt class="col-sm-3">Cliente</dt>
+    <dd class="col-sm-9">
+        <a href="{{ path('app_anagrafica_show', {id: notifica.anagrafica.id}) }}">
+            {{ notifica.anagrafica.cognome }} {{ notifica.anagrafica.nome }}
+        </a>
+    </dd>
+    <dt class="col-sm-3">Veicolo</dt>
+    <dd class="col-sm-9">{{ notifica.vettura ? notifica.vettura.targa : '–' }}</dd>
+    <dt class="col-sm-3">Tipo scadenza</dt>
+    <dd class="col-sm-9">{{ notifica.tipoScadenza|capitalize }}</dd>
+    <dt class="col-sm-3">Canale</dt>
+    <dd class="col-sm-9">{{ notifica.canale|capitalize }}</dd>
+    <dt class="col-sm-3">Esito</dt>
+    <dd class="col-sm-9">{{ notifica.esito ? notifica.esito|replace({'_':' '})|capitalize : '–' }}</dd>
+    <dt class="col-sm-3">Note</dt>
+    <dd class="col-sm-9">{{ notifica.note ?? '–' }}</dd>
+</dl>
+<a href="{{ path('app_notifica_edit', {id: notifica.id}) }}" class="btn btn-secondary">Modifica</a>
+<a href="{{ path('app_notifica_index') }}" class="btn btn-outline-secondary ms-2">← Torna alla lista</a>
+{% endblock %}

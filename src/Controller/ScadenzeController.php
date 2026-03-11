@@ -7,256 +7,145 @@ use App\Entity\Bollo;
 use App\Entity\Patente;
 use App\Entity\Vettura;
 use App\Form\ScadenzaType;
+use App\Service\ScadenzaService;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Query\Parameter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class ScadenzeController extends AbstractController
 {
+    public function __construct(
+        private readonly ScadenzaService $scadenzaService
+    ) {}
+
     #[Route('/', name: 'app_scadenze_home')]
-    public function index(EntityManagerInterface $entityManager): Response
+    public function index(EntityManagerInterface $em): Response
     {
-        $dataScadenza = date('Y-m-d');
-        $aDataScadenza = date('Y-m-d', strtotime("+1 months", strtotime($dataScadenza)));
+        $dataScadenza  = date('Y-m-d');
+        $aDataScadenza = date('Y-m-d', strtotime('+1 months'));
 
-        $form = $this->createForm(ScadenzaType::class, null, array(
-            'action' => $this->generateUrl('app_scadenze_index', array(
-                'dataScadenza' => $dataScadenza,
-                'aDataScadenza' => $aDataScadenza
-            )),
-            'method' => 'POST',
-            'attr' => array('role' => 'form'),
-        ));
-
-        $bolli = $this->getBolliScaduti($dataScadenza, $aDataScadenza, $entityManager);
-        $assicurazioni = $this->getAssicurazioniScadute($dataScadenza, $aDataScadenza, $entityManager);
-        $patenti = $this->getPatentiScadute($dataScadenza, $aDataScadenza, $entityManager);
-        $vetture = $this->getRevisioniScadute($dataScadenza, $aDataScadenza, $entityManager);
-/*
-        dump($bolli);
-        dump($assicurazioni);
-        dump($patenti);
-        dd($vetture);*/
-
-        return $this->render(
-            'scadenze/index.html.twig',
-            array(
-                'bolli' => $bolli,
-                'assicurazioni' => $assicurazioni,
-                'patenti' => $patenti,
-                'vetture' => $vetture,
-                'dataScadenza' => $dataScadenza,
+        $form = $this->createForm(ScadenzaType::class, null, [
+            'action' => $this->generateUrl('app_scadenze_index', [
+                'dataScadenza'  => $dataScadenza,
                 'aDataScadenza' => $aDataScadenza,
-                'search_form' => $form->createView()
-            ));
+            ]),
+            'method' => 'POST',
+        ]);
 
         return $this->render('scadenze/index.html.twig', [
-            'controller_name' => 'ScadenzeController',
+            'bolli'          => $this->queryBolli($dataScadenza, $aDataScadenza, $em),
+            'assicurazioni'  => $this->queryAssicurazioni($dataScadenza, $aDataScadenza, $em),
+            'patenti'        => $this->queryPatenti($dataScadenza, $aDataScadenza, $em),
+            'vetture'        => $this->queryRevisioni($dataScadenza, $aDataScadenza, $em),
+            'dataScadenza'   => $dataScadenza,
+            'aDataScadenza'  => $aDataScadenza,
+            'search_form'    => $form->createView(),
+            'scadenzaService' => $this->scadenzaService,
         ]);
     }
 
     #[Route('/scadenze/{dataScadenza}/{aDataScadenza}', name: 'app_scadenze_index')]
-    public function search($dataScadenza, $aDataScadenza, Request $request, EntityManagerInterface $entityManager)
-    {
-        $form = $this->createForm(ScadenzaType::class, null, array(
-            'action' => $this->generateUrl('app_scadenze_index', array(
-                'dataScadenza' => $dataScadenza,
-                'aDataScadenza' => $aDataScadenza
-            )),
+    public function search(
+        string $dataScadenza,
+        string $aDataScadenza,
+        Request $request,
+        EntityManagerInterface $em
+    ): Response {
+        $form = $this->createForm(ScadenzaType::class, null, [
+            'action' => $this->generateUrl('app_scadenze_index', [
+                'dataScadenza'  => $dataScadenza,
+                'aDataScadenza' => $aDataScadenza,
+            ]),
             'method' => 'POST',
-            'attr' => array('role' => 'form'),
-        ));
-
-        $bolli = $this->getBolliScaduti($dataScadenza, $aDataScadenza, $entityManager);
-        $assicurazioni = $this->getAssicurazioniScadute($dataScadenza, $aDataScadenza, $entityManager);
-        $patenti = $this->getPatentiScadute($dataScadenza, $aDataScadenza, $entityManager);
-        $vetture = $this->getRevisioniScadute($dataScadenza, $aDataScadenza, $entityManager);
-
-       // dump($bolli);
-
-        // dd($assicurazioni);
+        ]);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
             $data = $form->getData();
-
-            $dataScadenza = $data['dataScadenza']->format('Y-m-d');
-
-            $aDataScadenza = $data['aDataScadenza']->format('Y-m-d');
-
-            return $form = $this->redirect($this->generateUrl('app_scadenze_index', array(
-                'dataScadenza' => $dataScadenza,
-                'aDataScadenza' => $aDataScadenza
-            )));
+            return $this->redirectToRoute('app_scadenze_index', [
+                'dataScadenza'  => $data['dataScadenza']->format('Y-m-d'),
+                'aDataScadenza' => $data['aDataScadenza']->format('Y-m-d'),
+            ]);
         }
 
-        return $this->render(
-            'Scadenze/index.html.twig',
-            array(
-                'bolli' => $bolli,
-                'assicurazioni' => $assicurazioni,
-                'patenti' => $patenti,
-                'vetture' => $vetture,
-                'dataScadenza' => $dataScadenza,
-                'aDataScadenza' => $aDataScadenza,
-                'search_form' => $form->createView()
-            ));
+        return $this->render('scadenze/index.html.twig', [
+            'bolli'           => $this->queryBolli($dataScadenza, $aDataScadenza, $em),
+            'assicurazioni'   => $this->queryAssicurazioni($dataScadenza, $aDataScadenza, $em),
+            'patenti'         => $this->queryPatenti($dataScadenza, $aDataScadenza, $em),
+            'vetture'         => $this->queryRevisioni($dataScadenza, $aDataScadenza, $em),
+            'dataScadenza'    => $dataScadenza,
+            'aDataScadenza'   => $aDataScadenza,
+            'search_form'     => $form->createView(),
+            'scadenzaService' => $this->scadenzaService,
+        ]);
     }
 
-    private function getBolliScaduti($dataScadenza, $aDataScadenza, EntityManagerInterface $entityManager)
+    // ── Query private ────────────────────────────────────────────────────────
+
+    private function queryBolli(string $da, string $a, EntityManagerInterface $em): array
     {
-        $repository = $entityManager->getRepository(Bollo::class);            
-
-        $query = $repository->createQueryBuilder('bollo')
-            ->where('bollo.dataScadenzaBollo >= :data')
-            ->andWhere('bollo.dataScadenzaBollo <= :dataFine')
-            ->setParameters(new ArrayCollection(array(
-                new Parameter('data', $dataScadenza),
-                new Parameter('dataFine', $aDataScadenza)
-            )))
-            ->orderBy('bollo.dataScadenzaBollo', 'ASC')
-            ->getQuery();
-
-        $bolli = $query->getResult();
-
-        return $bolli;
+        return $em->getRepository(Bollo::class)
+            ->createQueryBuilder('b')
+            ->join('b.vettura', 'v')
+            ->join('v.intestatario', 'ana')
+            ->where('b.dataScadenzaBollo BETWEEN :da AND :a')
+            ->setParameters(new ArrayCollection([
+                new Parameter('da', $da),
+                new Parameter('a', $a),
+            ]))
+            ->orderBy('b.dataScadenzaBollo', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
-    private function getAssicurazioniScadute($dataScadenza, $aDataScadenza, EntityManagerInterface $entityManager)
+    private function queryAssicurazioni(string $da, string $a, EntityManagerInterface $em): array
     {
-        $repository = $entityManager->getRepository(Assicurazione::class);
-
-        $query = $repository->createQueryBuilder('a')
-            ->where('a.dataScadenzaAssicurazione >= :data')
-            ->andWhere('a.dataScadenzaAssicurazione <= :dataFine')
-            ->setParameters(new ArrayCollection(array(
-                new Parameter('data', $dataScadenza),
-                new Parameter('dataFine', $aDataScadenza)
-            )))
-            ->orderBy('a.dataScadenzaAssicurazione', 'ASC')
-            ->getQuery();
-
-        $assicurazioni = $query->getResult();
-
-        return $assicurazioni;
+        return $em->getRepository(Assicurazione::class)
+            ->createQueryBuilder('asc')
+            ->join('asc.vettura', 'v')
+            ->join('v.intestatario', 'ana')
+            ->where('asc.dataScadenzaAssicurazione BETWEEN :da AND :a')
+            ->setParameters(new ArrayCollection([
+                new Parameter('da', $da),
+                new Parameter('a', $a),
+            ]))
+            ->orderBy('asc.dataScadenzaAssicurazione', 'ASC')
+            ->getQuery()
+            ->getResult();
     }
 
-    private function getPatentiScadute($dataScadenza, $aDataScadenza, EntityManagerInterface $entityManager)
+    private function queryPatenti(string $da, string $a, EntityManagerInterface $em): array
     {
-
-        $repository = $entityManager->getRepository(Patente::class);
-
-        $query = $repository->createQueryBuilder('p')
-            ->where('p.dataScadenzaPatente >= :data')
-            ->andWhere('p.dataScadenzaPatente <= :dataFine')
-            ->setParameters(new ArrayCollection(array(
-                new Parameter('data', $dataScadenza),
-                new Parameter('dataFine', $aDataScadenza)
-            )))
+        return $em->getRepository(Patente::class)
+            ->createQueryBuilder('p')
+            ->join('p.intestatario', 'ana')
+            ->where('p.dataScadenzaPatente BETWEEN :da AND :a')
+            ->setParameters(new ArrayCollection([
+                new Parameter('da', $da),
+                new Parameter('a', $a),
+            ]))
             ->orderBy('p.dataScadenzaPatente', 'ASC')
-            ->getQuery();
-
-        $patenti = $query->getResult();
-
-        return $patenti;
+            ->getQuery()
+            ->getResult();
     }
 
-    private function getRevisioniScadute($dataScadenza, $aDataScadenza, EntityManagerInterface $entityManager)
+    private function queryRevisioni(string $da, string $a, EntityManagerInterface $em): array
     {
-        $repository = $entityManager->getRepository(Vettura::class);
-
-        $query = $repository->createQueryBuilder('v')
-            ->where('v.dataScadenzaRevisione >= :data')
-            ->andWhere('v.dataScadenzaRevisione <= :dataFine')
-            ->setParameters(new ArrayCollection(array(
-                new Parameter('data', $dataScadenza),
-                new Parameter('dataFine', $aDataScadenza)
-            )))
+        return $em->getRepository(Vettura::class)
+            ->createQueryBuilder('v')
+            ->join('v.intestatario', 'ana')
+            ->where('v.dataScadenzaRevisione BETWEEN :da AND :a')
+            ->setParameters(new ArrayCollection([
+                new Parameter('da', $da),
+                new Parameter('a', $a),
+            ]))
             ->orderBy('v.dataScadenzaRevisione', 'ASC')
-            ->getQuery();
-
-        $vetture = $query->getResult();
-
-        return $vetture;
+            ->getQuery()
+            ->getResult();
     }
-/*
-    public function stampaRevisioniAction($dataScadenza, $aDataScadenza)
-    {
-        $vetture = $this->getRevisioniScadute($dataScadenza, $aDataScadenza);
-
-        $html = $this->renderView(':Stampe:pdfRevisioni.pdf.twig', array(
-            "vetture" => $vetture,
-            'dataScadenza' => $dataScadenza,
-            'aDataScadenza' => $aDataScadenza
-        ));
-
-        return new PdfResponse(
-            $this->get('knp_snappy.pdf')->getOutputFromHtml($html),
-            'Revisioni_da_'.$dataScadenza.'_a_'.$aDataScadenza.'.pdf',
-            null,
-            'inline'
-        );
-    }
-
-    public function stampaAssicurazioniAction($dataScadenza, $aDataScadenza)
-    {
-        $assicurazioni = $this->getAssicurazioniScadute($dataScadenza, $aDataScadenza);
-
-        $html = $this->renderView(':Stampe:pdfAssicurazioni.pdf.twig', array(
-            "assicurazioni" => $assicurazioni,
-            'dataScadenza' => $dataScadenza,
-            'aDataScadenza' => $aDataScadenza
-        ));
-
-        return new PdfResponse(
-            $this->get('knp_snappy.pdf')->getOutputFromHtml($html),
-            'Assicurazioni_da_'.$dataScadenza.'_a_'.$aDataScadenza.'.pdf',
-            null,
-            'inline'
-        );
-    }
-
-    public function stampaBolliAction($dataScadenza, $aDataScadenza)
-    {
-        $bolli = $this->getBolliScaduti($dataScadenza, $aDataScadenza);
-
-        $html = $this->renderView(':Stampe:pdfBolli.pdf.twig', array(
-            'bolli' => $bolli,
-            'dataScadenza' => $dataScadenza,
-            'aDataScadenza' => $aDataScadenza
-        ));
-
-        return new PdfResponse(
-            $this->get('knp_snappy.pdf')->getOutputFromHtml($html),
-            'Bolli_da_'.$dataScadenza.'_a_'.$aDataScadenza.'.pdf',
-            null,
-            'inline'
-        );
-    }
-
-    public function stampaPatentiAction($dataScadenza, $aDataScadenza)
-    {
-        $patenti = $this->getPatentiScadute($dataScadenza, $aDataScadenza);
-
-        $html = $this->renderView(':Stampe:pdfPatenti.pdf.twig', array(
-            'patenti' => $patenti,
-            'dataScadenza' => $dataScadenza,
-            'aDataScadenza' => $aDataScadenza
-        ));
-
-        return new PdfResponse(
-            $this->get('knp_snappy.pdf')->getOutputFromHtml($html),
-            'Patenti_da_'.$dataScadenza.'_a_'.$aDataScadenza.'.pdf',
-            null,
-            'inline'
-        );
-    }
-        */
 }

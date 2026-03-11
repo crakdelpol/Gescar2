@@ -1,0 +1,31 @@
+{{ form_start(form) }}
+<div class="row g-3">
+    <div class="col-md-6">
+        {{ form_row(form.anagrafica) }}
+    </div>
+    <div class="col-md-6">
+        {{ form_row(form.vettura) }}
+    </div>
+    <div class="col-md-4">
+        {{ form_row(form.tipoScadenza) }}
+    </div>
+    <div class="col-md-4">
+        {{ form_row(form.canale) }}
+    </div>
+    <div class="col-md-4">
+        {{ form_row(form.esito) }}
+    </div>
+    <div class="col-md-6">
+        {{ form_row(form.dataInvio) }}
+    </div>
+    <div class="col-12">
+        {{ form_row(form.note) }}
+    </div>
+</div>
+<div class="mt-3">
+    <button type="submit" class="btn btn-primary">
+        <i class="bi bi-save me-1"></i> Salva
+    </button>
+    <a href="{{ path('app_notifica_index') }}" class="btn btn-secondary ms-2">Annulla</a>
+</div>
+{{ form_end(form) }}
