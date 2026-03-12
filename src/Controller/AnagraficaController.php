@@ -15,10 +15,17 @@ use Symfony\Component\Routing\Attribute\Route;
 final class AnagraficaController extends AbstractController
 {
     #[Route(name: 'app_anagrafica_index', methods: ['GET'])]
-    public function index(AnagraficaRepository $anagraficaRepository): Response
+    public function index(Request $request, AnagraficaRepository $anagraficaRepository): Response
     {
+        $q = trim($request->query->get('q', ''));
+
+        $anagrafiche = $q
+            ? $anagraficaRepository->searchGlobale($q)
+            : $anagraficaRepository->findAll();
+
         return $this->render('anagrafica/index.html.twig', [
-            'anagrafiche' => $anagraficaRepository->findAll(),
+            'anagrafiche' => $anagrafiche,
+            'q'           => $q,
         ]);
     }
 

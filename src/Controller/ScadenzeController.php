@@ -22,13 +22,19 @@ final class ScadenzeController extends AbstractController
         private readonly ScadenzaService $scadenzaService
     ) {}
 
+    /**
+     * Home: semaforo immediato + scadenze del periodo corrente (oggi → +30 giorni).
+     */
     #[Route('/', name: 'app_scadenze_home')]
     public function index(EntityManagerInterface $em): Response
     {
         $dataScadenza  = date('Y-m-d');
         $aDataScadenza = date('Y-m-d', strtotime('+1 months'));
 
-        $form = $this->createForm(ScadenzaType::class, null, [
+        $form = $this->createForm(ScadenzaType::class, [
+            'dataScadenza'  => new \DateTime($dataScadenza),
+            'aDataScadenza' => new \DateTime($aDataScadenza),
+        ], [
             'action' => $this->generateUrl('app_scadenze_index', [
                 'dataScadenza'  => $dataScadenza,
                 'aDataScadenza' => $aDataScadenza,
@@ -37,17 +43,21 @@ final class ScadenzeController extends AbstractController
         ]);
 
         return $this->render('scadenze/index.html.twig', [
-            'bolli'          => $this->queryBolli($dataScadenza, $aDataScadenza, $em),
-            'assicurazioni'  => $this->queryAssicurazioni($dataScadenza, $aDataScadenza, $em),
-            'patenti'        => $this->queryPatenti($dataScadenza, $aDataScadenza, $em),
-            'vetture'        => $this->queryRevisioni($dataScadenza, $aDataScadenza, $em),
-            'dataScadenza'   => $dataScadenza,
-            'aDataScadenza'  => $aDataScadenza,
-            'search_form'    => $form->createView(),
+            'bolli'           => $this->queryBolli($dataScadenza, $aDataScadenza, $em),
+            'assicurazioni'   => $this->queryAssicurazioni($dataScadenza, $aDataScadenza, $em),
+            'patenti'         => $this->queryPatenti($dataScadenza, $aDataScadenza, $em),
+            'vetture'         => $this->queryRevisioni($dataScadenza, $aDataScadenza, $em),
+            'dataScadenza'    => $dataScadenza,
+            'aDataScadenza'   => $aDataScadenza,
+            'search_form'     => $form->createView(),
             'scadenzaService' => $this->scadenzaService,
+            'sommario'        => $this->scadenzaService->getSommarioDashboard(),
         ]);
     }
 
+    /**
+     * Ricerca per periodo: semaforo sempre visibile + risultati filtrati.
+     */
     #[Route('/scadenze/{dataScadenza}/{aDataScadenza}', name: 'app_scadenze_index')]
     public function search(
         string $dataScadenza,
@@ -55,7 +65,10 @@ final class ScadenzeController extends AbstractController
         Request $request,
         EntityManagerInterface $em
     ): Response {
-        $form = $this->createForm(ScadenzaType::class, null, [
+        $form = $this->createForm(ScadenzaType::class, [
+            'dataScadenza'  => new \DateTime($dataScadenza),
+            'aDataScadenza' => new \DateTime($aDataScadenza),
+        ], [
             'action' => $this->generateUrl('app_scadenze_index', [
                 'dataScadenza'  => $dataScadenza,
                 'aDataScadenza' => $aDataScadenza,
@@ -82,6 +95,7 @@ final class ScadenzeController extends AbstractController
             'aDataScadenza'   => $aDataScadenza,
             'search_form'     => $form->createView(),
             'scadenzaService' => $this->scadenzaService,
+            'sommario'        => $this->scadenzaService->getSommarioDashboard(),
         ]);
     }
 
@@ -140,6 +154,7 @@ final class ScadenzeController extends AbstractController
             ->createQueryBuilder('v')
             ->join('v.intestatario', 'ana')
             ->where('v.dataScadenzaRevisione BETWEEN :da AND :a')
+            ->andWhere('v.esenteRevisione = false')
             ->setParameters(new ArrayCollection([
                 new Parameter('da', $da),
                 new Parameter('a', $a),

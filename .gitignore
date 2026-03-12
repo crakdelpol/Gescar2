@@ -41,6 +41,9 @@ dump_*.sql
 # Uploads utenti (se presenti)
 /public/uploads/
 
+# Agenti AI (prompt locali, non per il repo)
+/.agents/
+
 # Build assets
 /public/build/
 /node_modules/

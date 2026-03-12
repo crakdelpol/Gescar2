@@ -10,7 +10,7 @@
 Gestionale web per un **centro revisioni auto** (Centro Revisioni Charlot).
 Permette agli operatori di tracciare e gestire le scadenze di:
 - **Revisioni veicoli** (periodicità legge italiana: 4 anni + ogni 2)
-- **Assicurazioni** (annuale, con storico polizze)
+- **Assicurazioni** (annuale, una per veicolo)
 - **Bollo auto** (annuale per mese di immatricolazione)
 - **Patenti** (variabile per categoria e età)
 
@@ -100,16 +100,20 @@ intestatario_id FK → anagrafica(id)
 ### Assicurazione → `assicurazione`
 ```
 id, data_scadenza_assicurazione, note,
-vettura_id FK → vettura(id)   [attualmente OneToOne → UNIQUE, da rimuovere per storico]
+attiva, data_inizio, compagnia, numero_polizza, created_at,
+vettura_id FK → vettura(id)   [OneToOne — UNA sola assicurazione per veicolo]
 ```
-**TODO Migration #2:** rimuovere UNIQUE, aggiungere `attiva`, `data_inizio`, `compagnia`, `numero_polizza`
+> ⚠️ La migration 002 ha rimosso il UNIQUE DB per poter aggiungere campi extra,
+> ma la relazione rimane **OneToOne** a livello applicativo. Non convertire in ManyToOne.
 
 ### Bollo → `bollo`
 ```
 id, data_scadenza_bollo, note,
-vettura_id FK → vettura(id)   [attualmente OneToOne → UNIQUE, da rimuovere per storico]
+attiva, importo, super_bollo, pagato, data_pagamento, created_at,
+vettura_id FK → vettura(id)   [OneToOne — UN solo bollo per veicolo]
 ```
-**TODO Migration #1:** rimuovere UNIQUE, aggiungere `attiva`, `importo`, `super_bollo`, `pagato`, `data_pagamento`
+> ⚠️ La migration 001 ha rimosso il UNIQUE DB per poter aggiungere campi extra,
+> ma la relazione rimane **OneToOne** a livello applicativo. Non convertire in ManyToOne.
 
 ### Patente → `patente`
 ```
@@ -262,8 +266,8 @@ $notificaService->getRecenti($giorni = 7);
 | Scadenze (home) | ✅ Funzionante | Refactoring fatto, badge semaforo, Bootstrap 5 Tabs |
 | Anagrafica CRUD | ✅ Funzionante | Form validato |
 | Vettura CRUD | ✅ Funzionante | Include link intestatario |
-| Assicurazione CRUD | ⚠️ Funzionante | Entity ancora OneToOne (UNIQUE) — storico non supportato |
-| Bollo CRUD | ⚠️ Funzionante | Entity ancora OneToOne (UNIQUE) — storico non supportato |
+| Assicurazione CRUD | ✅ Funzionante | OneToOne corretto — una sola assicurazione per veicolo |
+| Bollo CRUD | ✅ Funzionante | OneToOne corretto — un solo bollo per veicolo |
 | Patente CRUD | ✅ Funzionante | categoriaPatente come JSON array |
 | Notifiche CRUD | ✅ Strutturato | Controller + Form + Template pronti, dipende da migration |
 | Ricerca globale | ⚠️ Parziale | Navbar invia GET a `/anagrafica?q=...` ma AnagraficaController::index non filtra ancora |
@@ -274,7 +278,6 @@ $notificaService->getRecenti($giorni = 7);
 ## 11. Issue note e TODO tecnici
 
 ### Bug / Inconsistenze
-- `Assicurazione` e `Bollo` sono ancora `OneToOne` in PHP ma le migration rimuovono il UNIQUE nel DB. Dopo le migration, convertire in `ManyToOne` nelle Entity.
 - `AnagraficaType` usa chiavi snake_case (`luogo_nascita`) ma il campo Symfony è camelCase. Funziona ma è da allineare.
 - `VetturaType` mostra solo `cognome` nel choice label intestatario — sarebbe meglio `cognome + nome`.
 - `AnagraficaController::index` non usa ancora `AnagraficaRepository::search()` per filtrare con `?q=`.
@@ -282,9 +285,8 @@ $notificaService->getRecenti($giorni = 7);
 
 ### TODO funzionali (da docs/04_ROADMAP.md)
 - [ ] Collegare ricerca navbar → `AnagraficaController::index` con filtro `?q=`
-- [ ] Convertire `Assicurazione` e `Bollo` in ManyToOne dopo migrations
 - [ ] Aggiungere `telefono2` all'entity Anagrafica
-- [ ] Aggiungere `esente_revisione` (boolean) all'entity Vettura
+- [x] Aggiungere `esente_revisione` (boolean) all'entity Vettura — ✅ fatto 2026-03-12
 - [ ] DataFixtures aggiornate con `User` e `Notifica`
 - [ ] Creare primo utente admin via console command
 - [ ] Completare template `anagrafica/show.html.twig` con lista veicoli e storico notifiche

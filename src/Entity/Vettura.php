@@ -49,6 +49,10 @@ class Vettura
     #[ORM\Column(nullable: true)]
     private ?\DateTime $dataScadenzaImpianto = null;
 
+    /** Veicoli esenti da revisione (es. veicoli storici, rimorchi, ecc.) */
+    #[ORM\Column(options: ['default' => 0])]
+    private bool $esenteRevisione = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -182,6 +186,18 @@ class Vettura
     public function setDataScadenzaImpianto(?\DateTime $dataScadenzaImpianto): static
     {
         $this->dataScadenzaImpianto = $dataScadenzaImpianto;
+
+        return $this;
+    }
+
+    public function isEsenteRevisione(): bool
+    {
+        return $this->esenteRevisione;
+    }
+
+    public function setEsenteRevisione(bool $esenteRevisione): static
+    {
+        $this->esenteRevisione = $esenteRevisione;
 
         return $this;
     }

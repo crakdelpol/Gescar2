@@ -2,65 +2,6 @@
 {% block title %}Scadenze – Gescar{% endblock %}
 
 {% block body %}
-<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
-    <h1 class="h2">
-        Scadenze
-        <small class="text-muted fs-5">
-            dal {{ dataScadenza|date('d/m/Y') }} al {{ aDataScadenza|date('d/m/Y') }}
-        </small>
-    </h1>
-</div>
-
-{# ── Form filtro date ──────────────────────────────────────────────────── #}
-{{ form_start(search_form, {attr: {class: 'row g-2 align-items-end mb-4'}}) }}
-    <div class="col-auto">
-        {{ form_label(search_form.dataScadenza, 'Da', {label_attr: {class: 'form-label mb-1'}}) }}
-        {{ form_widget(search_form.dataScadenza, {attr: {class: 'form-control form-control-sm'}}) }}
-    </div>
-    <div class="col-auto">
-        {{ form_label(search_form.aDataScadenza, 'A', {label_attr: {class: 'form-label mb-1'}}) }}
-        {{ form_widget(search_form.aDataScadenza, {attr: {class: 'form-control form-control-sm'}}) }}
-    </div>
-    <div class="col-auto">
-        {{ form_widget(search_form.cerca, {attr: {class: 'btn btn-primary btn-sm'}}) }}
-    </div>
-{{ form_end(search_form) }}
-
-{# ── Filtri tab ────────────────────────────────────────────────────────── #}
-<ul class="nav nav-tabs mb-3" id="scadenzeTabs" role="tablist">
-    <li class="nav-item">
-        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-revisioni" type="button">
-            <i class="bi bi-wrench me-1"></i>Revisioni
-            {% if vetture is not empty %}
-                <span class="badge bg-danger ms-1">{{ vetture|length }}</span>
-            {% endif %}
-        </button>
-    </li>
-    <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-assicurazioni" type="button">
-            <i class="bi bi-shield-check me-1"></i>Assicurazioni
-            {% if assicurazioni is not empty %}
-                <span class="badge bg-warning text-dark ms-1">{{ assicurazioni|length }}</span>
-            {% endif %}
-        </button>
-    </li>
-    <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-bolli" type="button">
-            <i class="bi bi-receipt me-1"></i>Bolli
-            {% if bolli is not empty %}
-                <span class="badge bg-info text-dark ms-1">{{ bolli|length }}</span>
-            {% endif %}
-        </button>
-    </li>
-    <li class="nav-item">
-        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-patenti" type="button">
-            <i class="bi bi-card-text me-1"></i>Patenti
-            {% if patenti is not empty %}
-                <span class="badge bg-secondary ms-1">{{ patenti|length }}</span>
-            {% endif %}
-        </button>
-    </li>
-</ul>
 
 {# ── Macro badge semaforo ──────────────────────────────────────────────── #}
 {% macro badge_scadenza(data, scadenzaService) %}
@@ -74,182 +15,381 @@
 {% endmacro %}
 {% import _self as macro %}
 
-<div class="tab-content">
+{# ── Intestazione ──────────────────────────────────────────────────────── #}
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2 mb-0">
+        <i class="bi bi-calendar-event me-2 text-primary"></i>Scadenze
+    </h1>
+    <small class="text-muted">Aggiornato al {{ 'now'|date('d/m/Y H:i') }}</small>
+</div>
 
-    {# ── Revisioni ──────────────────────────────────────────────────────── #}
-    <div class="tab-pane fade show active" id="tab-revisioni">
-        {% if vetture is empty %}
-            <p class="text-muted py-3">Nessuna revisione nel periodo selezionato.</p>
-        {% else %}
-        <div class="table-responsive">
-            <table class="table table-sm table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Telefono</th>
-                        <th>Targa</th>
-                        <th>Marca / Modello</th>
-                        <th>Scadenza</th>
-                        <th>Note</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for v in vetture %}
-                    <tr>
-                        <td>
-                            <a href="{{ path('app_anagrafica_show', {id: v.intestatario.id}) }}">
-                                {{ v.intestatario.cognome|capitalize }} {{ v.intestatario.nome|capitalize }}
-                            </a>
-                        </td>
-                        <td>{{ v.intestatario.telefono }}</td>
-                        <td><code>{{ v.targa }}</code></td>
-                        <td>{{ v.marca }} {{ v.modello }}</td>
-                        <td>{{ macro.badge_scadenza(v.dataScadenzaRevisione, scadenzaService) }}</td>
-                        <td class="text-truncate" style="max-width:160px">{{ v.note }}</td>
-                        <td>
-                            <a class="btn btn-sm btn-outline-secondary" href="{{ path('app_vettura_edit', {id: v.id}) }}">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <a class="btn btn-sm btn-outline-primary ms-1"
-                               href="{{ path('app_notifica_new_per_cliente', {id: v.intestatario.id}) }}"
-                               title="Registra notifica">
-                                <i class="bi bi-bell"></i>
-                            </a>
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+{# ═══════════════════════════════════════════════════════════════════════════
+   SEZIONE 1 — SEMAFORO (dati fissi di oggi, indipendenti dal filtro)
+   ═══════════════════════════════════════════════════════════════════════════ #}
+<div class="row g-2 mb-4">
+
+    {% set n = sommario.revisioni_scadute|length %}
+    <div class="col-6 col-md">
+        <div class="card h-100 border-{{ n > 0 ? 'danger' : 'success' }} shadow-sm semaforo-card"
+             role="button" onclick="activateTab('tab-revisioni')" title="Filtra revisioni">
+            <div class="card-body text-center py-2 px-1">
+                <div class="display-6 fw-bold text-{{ n > 0 ? 'danger' : 'success' }}">{{ n }}</div>
+                <div class="small text-muted lh-sm mt-1">Revisioni<br>scadute</div>
+                {% if n > 0 %}
+                    <i class="bi bi-exclamation-triangle-fill text-danger small"></i>
+                {% else %}
+                    <i class="bi bi-check-circle-fill text-success small"></i>
+                {% endif %}
+            </div>
         </div>
-        {% endif %}
     </div>
 
-    {# ── Assicurazioni ──────────────────────────────────────────────────── #}
-    <div class="tab-pane fade" id="tab-assicurazioni">
-        {% if assicurazioni is empty %}
-            <p class="text-muted py-3">Nessuna assicurazione nel periodo selezionato.</p>
-        {% else %}
-        <div class="table-responsive">
-            <table class="table table-sm table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Telefono</th>
-                        <th>Targa</th>
-                        <th>Scadenza</th>
-                        <th>Note</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for a in assicurazioni %}
-                    <tr>
-                        <td>
-                            <a href="{{ path('app_anagrafica_show', {id: a.vettura.intestatario.id}) }}">
-                                {{ a.vettura.intestatario.cognome|capitalize }} {{ a.vettura.intestatario.nome|capitalize }}
-                            </a>
-                        </td>
-                        <td>{{ a.vettura.intestatario.telefono }}</td>
-                        <td><code>{{ a.vettura.targa }}</code></td>
-                        <td>{{ macro.badge_scadenza(a.dataScadenzaAssicurazione, scadenzaService) }}</td>
-                        <td>{{ a.note }}</td>
-                        <td>
-                            <a class="btn btn-sm btn-outline-primary"
-                               href="{{ path('app_notifica_new_per_cliente', {id: a.vettura.intestatario.id}) }}"
-                               title="Registra notifica">
-                                <i class="bi bi-bell"></i>
-                            </a>
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+    {% set n = sommario.revisioni_30gg|length %}
+    <div class="col-6 col-md">
+        <div class="card h-100 border-{{ n > 0 ? 'warning' : 'success' }} shadow-sm semaforo-card"
+             role="button" onclick="activateTab('tab-revisioni')" title="Filtra revisioni">
+            <div class="card-body text-center py-2 px-1">
+                <div class="display-6 fw-bold text-{{ n > 0 ? 'warning' : 'success' }}">{{ n }}</div>
+                <div class="small text-muted lh-sm mt-1">Revisioni<br>entro 30 gg</div>
+            </div>
         </div>
-        {% endif %}
     </div>
 
-    {# ── Bolli ──────────────────────────────────────────────────────────── #}
-    <div class="tab-pane fade" id="tab-bolli">
-        {% if bolli is empty %}
-            <p class="text-muted py-3">Nessun bollo nel periodo selezionato.</p>
-        {% else %}
-        <div class="table-responsive">
-            <table class="table table-sm table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Telefono</th>
-                        <th>Targa</th>
-                        <th>Tipo veicolo</th>
-                        <th>Scadenza</th>
-                        <th>Note</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for b in bolli %}
-                    <tr>
-                        <td>
-                            <a href="{{ path('app_anagrafica_show', {id: b.vettura.intestatario.id}) }}">
-                                {{ b.vettura.intestatario.cognome|capitalize }} {{ b.vettura.intestatario.nome|capitalize }}
-                            </a>
-                        </td>
-                        <td>{{ b.vettura.intestatario.telefono }}</td>
-                        <td><code>{{ b.vettura.targa }}</code></td>
-                        <td>{{ b.vettura.tipo }}</td>
-                        <td>{{ macro.badge_scadenza(b.dataScadenzaBollo, scadenzaService) }}</td>
-                        <td>{{ b.note }}</td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+    {% set n = sommario.assicurazioni_30gg|length %}
+    <div class="col-6 col-md">
+        <div class="card h-100 border-{{ n > 0 ? 'warning' : 'success' }} shadow-sm semaforo-card"
+             role="button" onclick="activateTab('tab-assicurazioni')" title="Filtra assicurazioni">
+            <div class="card-body text-center py-2 px-1">
+                <div class="display-6 fw-bold text-{{ n > 0 ? 'warning' : 'success' }}">{{ n }}</div>
+                <div class="small text-muted lh-sm mt-1">Assicurazioni<br>entro 30 gg</div>
+            </div>
         </div>
-        {% endif %}
     </div>
 
-    {# ── Patenti ────────────────────────────────────────────────────────── #}
-    <div class="tab-pane fade" id="tab-patenti">
-        {% if patenti is empty %}
-            <p class="text-muted py-3">Nessuna patente nel periodo selezionato.</p>
-        {% else %}
-        <div class="table-responsive">
-            <table class="table table-sm table-hover align-middle">
-                <thead class="table-light">
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Telefono</th>
-                        <th>N° Patente</th>
-                        <th>Categorie</th>
-                        <th>Scadenza</th>
-                        <th>Note</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for p in patenti %}
-                    <tr>
-                        <td>
-                            <a href="{{ path('app_anagrafica_show', {id: p.intestatario.id}) }}">
-                                {{ p.intestatario.cognome|capitalize }} {{ p.intestatario.nome|capitalize }}
-                            </a>
-                        </td>
-                        <td>{{ p.intestatario.telefono }}</td>
-                        <td>{{ p.numeroPatente }}</td>
-                        <td>{{ p.categoriaPatente ? p.categoriaPatente|join(', ') : '–' }}</td>
-                        <td>{{ macro.badge_scadenza(p.dataScadenzaPatente, scadenzaService) }}</td>
-                        <td>{{ p.note }}</td>
-                        <td>
-                            <a class="btn btn-sm btn-outline-secondary" href="{{ path('app_patente_edit', {id: p.id}) }}">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                        </td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
+    {% set n = sommario.patenti_60gg|length %}
+    <div class="col-6 col-md">
+        <div class="card h-100 border-{{ n > 0 ? 'info' : 'success' }} shadow-sm semaforo-card"
+             role="button" onclick="activateTab('tab-patenti')" title="Filtra patenti">
+            <div class="card-body text-center py-2 px-1">
+                <div class="display-6 fw-bold text-{{ n > 0 ? 'info' : 'success' }}">{{ n }}</div>
+                <div class="small text-muted lh-sm mt-1">Patenti<br>entro 60 gg</div>
+            </div>
         </div>
-        {% endif %}
     </div>
 
-</div>{# /tab-content #}
+    {% set n = sommario.bolli_mese_corrente|length %}
+    <div class="col-6 col-md">
+        <div class="card h-100 border-{{ n > 0 ? 'info' : 'success' }} shadow-sm semaforo-card"
+             role="button" onclick="activateTab('tab-bolli')" title="Filtra bolli">
+            <div class="card-body text-center py-2 px-1">
+                <div class="display-6 fw-bold text-{{ n > 0 ? 'info' : 'success' }}">{{ n }}</div>
+                <div class="small text-muted lh-sm mt-1">Bolli<br>questo mese</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{# ═══════════════════════════════════════════════════════════════════════════
+   SEZIONE 2 — FILTRO DATE + SCORCIATOIE
+   ═══════════════════════════════════════════════════════════════════════════ #}
+<div class="card mb-3 border-0 bg-body-tertiary">
+    <div class="card-body py-2 px-3">
+
+        {{ form_start(search_form, {attr: {class: 'row g-2 align-items-end', id: 'filtro-form'}}) }}
+            <div class="col-auto">
+                {{ form_label(search_form.dataScadenza, 'Da', {label_attr: {class: 'form-label mb-1 small'}}) }}
+                {{ form_widget(search_form.dataScadenza, {attr: {class: 'form-control form-control-sm', id: 'input-da'}}) }}
+            </div>
+            <div class="col-auto">
+                {{ form_label(search_form.aDataScadenza, 'A', {label_attr: {class: 'form-label mb-1 small'}}) }}
+                {{ form_widget(search_form.aDataScadenza, {attr: {class: 'form-control form-control-sm', id: 'input-a'}}) }}
+            </div>
+            <div class="col-auto align-self-end">
+                {{ form_widget(search_form.cerca, {attr: {class: 'btn btn-primary btn-sm'}}) }}
+            </div>
+            <div class="col-auto align-self-end">
+                <span class="badge text-bg-secondary fs-6 px-3 py-2">
+                    <i class="bi bi-calendar-range me-1"></i>
+                    {{ dataScadenza|date('d/m/Y') }} → {{ aDataScadenza|date('d/m/Y') }}
+                </span>
+            </div>
+        {{ form_end(search_form) }}
+
+        {# PULSANTI RAPIDI — decommentare quando richiesto dal cliente
+        <div class="mt-2 d-flex flex-wrap gap-1">
+            <button type="button" class="btn btn-outline-danger btn-sm"
+                    onclick="quickFilter('1970-01-01', today())">
+                <i class="bi bi-exclamation-triangle me-1"></i>Scaduti
+            </button>
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    onclick="quickFilter(today(), today())">Oggi</button>
+            <button type="button" class="btn btn-outline-warning btn-sm"
+                    onclick="quickFilter(today(), addDays(30))">+30 gg</button>
+            <button type="button" class="btn btn-outline-info btn-sm"
+                    onclick="quickFilter(today(), addDays(60))">+60 gg</button>
+            <button type="button" class="btn btn-outline-secondary btn-sm"
+                    onclick="quickFilter(firstDayOfMonth(), lastDayOfMonth())">Questo mese</button>
+        </div>
+        #}
+
+    </div>
+</div>
+
+{# ═══════════════════════════════════════════════════════════════════════════
+   SEZIONE 3 — RISULTATI
+   ═══════════════════════════════════════════════════════════════════════════ #}
+
+{# ── Revisioni ─────────────────────────────────────────────────────────── #}
+<div class="d-flex align-items-center gap-2 mb-2" id="sez-revisioni">
+    <h5 class="mb-0"><i class="bi bi-wrench text-danger me-1"></i>Revisioni</h5>
+    {% if vetture is not empty %}
+        <span class="badge bg-danger">{{ vetture|length }}</span>
+    {% else %}
+        <span class="badge bg-success">0</span>
+    {% endif %}
+</div>
+{% if vetture is empty %}
+    <p class="text-muted small mb-4"><i class="bi bi-check-circle me-1 text-success"></i>Nessuna revisione nel periodo selezionato.</p>
+{% else %}
+<div class="table-responsive mb-4">
+    <table class="table table-sm table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Cliente</th>
+                <th>Telefono</th>
+                <th>Targa</th>
+                <th>Marca / Modello</th>
+                <th>Scadenza</th>
+                <th>Note</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for v in vetture %}
+            <tr>
+                <td>
+                    <a href="{{ path('app_anagrafica_show', {id: v.intestatario.id}) }}">
+                        {{ v.intestatario.cognome|capitalize }} {{ v.intestatario.nome|capitalize }}
+                    </a>
+                </td>
+                <td>{{ v.intestatario.telefono }}</td>
+                <td><code>{{ v.targa }}</code></td>
+                <td>{{ v.marca }} {{ v.modello }}</td>
+                <td>{{ macro.badge_scadenza(v.dataScadenzaRevisione, scadenzaService) }}</td>
+                <td class="text-truncate" style="max-width:160px">{{ v.note }}</td>
+                <td class="text-nowrap">
+                    <a class="btn btn-sm btn-outline-secondary"
+                       href="{{ path('app_vettura_edit', {id: v.id}) }}" title="Modifica">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a class="btn btn-sm btn-outline-primary ms-1"
+                       href="{{ path('app_notifica_new_per_cliente', {id: v.intestatario.id}) }}"
+                       title="Registra notifica">
+                        <i class="bi bi-bell"></i>
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{# ── Assicurazioni ─────────────────────────────────────────────────────── #}
+<div class="d-flex align-items-center gap-2 mb-2" id="sez-assicurazioni">
+    <h5 class="mb-0"><i class="bi bi-shield-check text-warning me-1"></i>Assicurazioni</h5>
+    {% if assicurazioni is not empty %}
+        <span class="badge bg-warning text-dark">{{ assicurazioni|length }}</span>
+    {% else %}
+        <span class="badge bg-success">0</span>
+    {% endif %}
+</div>
+{% if assicurazioni is empty %}
+    <p class="text-muted small mb-4"><i class="bi bi-check-circle me-1 text-success"></i>Nessuna assicurazione nel periodo selezionato.</p>
+{% else %}
+<div class="table-responsive mb-4">
+    <table class="table table-sm table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Cliente</th>
+                <th>Telefono</th>
+                <th>Targa</th>
+                <th>Compagnia</th>
+                <th>Scadenza</th>
+                <th>Note</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for a in assicurazioni %}
+            <tr>
+                <td>
+                    <a href="{{ path('app_anagrafica_show', {id: a.vettura.intestatario.id}) }}">
+                        {{ a.vettura.intestatario.cognome|capitalize }} {{ a.vettura.intestatario.nome|capitalize }}
+                    </a>
+                </td>
+                <td>{{ a.vettura.intestatario.telefono }}</td>
+                <td><code>{{ a.vettura.targa }}</code></td>
+                <td>{{ a.compagnia ?? '–' }}</td>
+                <td>{{ macro.badge_scadenza(a.dataScadenzaAssicurazione, scadenzaService) }}</td>
+                <td>{{ a.note }}</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-primary"
+                       href="{{ path('app_notifica_new_per_cliente', {id: a.vettura.intestatario.id}) }}"
+                       title="Registra notifica">
+                        <i class="bi bi-bell"></i>
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{# ── Bolli ──────────────────────────────────────────────────────────────── #}
+<div class="d-flex align-items-center gap-2 mb-2" id="sez-bolli">
+    <h5 class="mb-0"><i class="bi bi-receipt text-info me-1"></i>Bolli</h5>
+    {% if bolli is not empty %}
+        <span class="badge bg-info text-dark">{{ bolli|length }}</span>
+    {% else %}
+        <span class="badge bg-success">0</span>
+    {% endif %}
+</div>
+{% if bolli is empty %}
+    <p class="text-muted small mb-4"><i class="bi bi-check-circle me-1 text-success"></i>Nessun bollo nel periodo selezionato.</p>
+{% else %}
+<div class="table-responsive mb-4">
+    <table class="table table-sm table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Cliente</th>
+                <th>Telefono</th>
+                <th>Targa</th>
+                <th>Tipo veicolo</th>
+                <th>Importo</th>
+                <th>Scadenza</th>
+                <th>Note</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for b in bolli %}
+            <tr>
+                <td>
+                    <a href="{{ path('app_anagrafica_show', {id: b.vettura.intestatario.id}) }}">
+                        {{ b.vettura.intestatario.cognome|capitalize }} {{ b.vettura.intestatario.nome|capitalize }}
+                    </a>
+                </td>
+                <td>{{ b.vettura.intestatario.telefono }}</td>
+                <td><code>{{ b.vettura.targa }}</code></td>
+                <td>{{ b.vettura.tipo }}</td>
+                <td>{{ b.importo ? '€ ' ~ b.importo : '–' }}</td>
+                <td>{{ macro.badge_scadenza(b.dataScadenzaBollo, scadenzaService) }}</td>
+                <td>{{ b.note }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{# ── Patenti ────────────────────────────────────────────────────────────── #}
+<div class="d-flex align-items-center gap-2 mb-2" id="sez-patenti">
+    <h5 class="mb-0"><i class="bi bi-card-text text-secondary me-1"></i>Patenti</h5>
+    {% if patenti is not empty %}
+        <span class="badge bg-secondary">{{ patenti|length }}</span>
+    {% else %}
+        <span class="badge bg-success">0</span>
+    {% endif %}
+</div>
+{% if patenti is empty %}
+    <p class="text-muted small mb-4"><i class="bi bi-check-circle me-1 text-success"></i>Nessuna patente nel periodo selezionato.</p>
+{% else %}
+<div class="table-responsive mb-4">
+    <table class="table table-sm table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Cliente</th>
+                <th>Telefono</th>
+                <th>N° Patente</th>
+                <th>Categorie</th>
+                <th>Scadenza</th>
+                <th>Note</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in patenti %}
+            <tr>
+                <td>
+                    <a href="{{ path('app_anagrafica_show', {id: p.intestatario.id}) }}">
+                        {{ p.intestatario.cognome|capitalize }} {{ p.intestatario.nome|capitalize }}
+                    </a>
+                </td>
+                <td>{{ p.intestatario.telefono }}</td>
+                <td>{{ p.numeroPatente }}</td>
+                <td>{{ p.categoriaPatente ? p.categoriaPatente|join(', ') : '–' }}</td>
+                <td>{{ macro.badge_scadenza(p.dataScadenzaPatente, scadenzaService) }}</td>
+                <td>{{ p.note }}</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-secondary"
+                       href="{{ path('app_patente_edit', {id: p.id}) }}" title="Modifica">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block javascripts %}
+<script>
+// ── Helper date ──────────────────────────────────────────────────────────
+function today() {
+    return new Date().toISOString().split('T')[0];
+}
+function addDays(n) {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    return d.toISOString().split('T')[0];
+}
+function firstDayOfMonth() {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0];
+}
+function lastDayOfMonth() {
+    const d = new Date();
+    return new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0];
+}
+
+// ── Pulsanti scorciatoia: imposta date e fa submit ───────────────────────
+function quickFilter(da, a) {
+    document.getElementById('input-da').value = da;
+    document.getElementById('input-a').value  = a;
+    document.getElementById('filtro-form').submit();
+}
+
+// ── Click su card semaforo: scrolla alla sezione corrispondente ───────────
+function activateTab(tabId) {
+    const map = {
+        'tab-revisioni':     'sez-revisioni',
+        'tab-assicurazioni': 'sez-assicurazioni',
+        'tab-bolli':         'sez-bolli',
+        'tab-patenti':       'sez-patenti',
+    };
+    const el = document.getElementById(map[tabId] ?? tabId);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── Hover sulle card semaforo ────────────────────────────────────────────
+document.querySelectorAll('.semaforo-card').forEach(card => {
+    card.style.cursor = 'pointer';
+    card.addEventListener('mouseenter', () => card.classList.add('shadow'));
+    card.addEventListener('mouseleave', () => card.classList.remove('shadow'));
+});
+</script>
 {% endblock %}
