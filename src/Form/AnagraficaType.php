@@ -29,17 +29,17 @@ class AnagraficaType extends AbstractType
                     'Privato' => 'privato',
                     'Azienda' => 'azienda',
                 ),))
-            ->add('luogo_nascita', TextType::class, array('required' => false))
-            ->add('codice_fiscale', TextType::class, array(
+            ->add('luogoNascita', TextType::class, array('required' => false))
+            ->add('codiceFiscale', TextType::class, array(
                 'required' => false,
                 'constraints' => array( new Length( array( 'min' => 16, 'max' => 16, 'exactMessage' => 'Il codice fiscale deve avere 16 caratteri'
                 )))))
-            ->add('partita_iva', TextType::class, array(
+            ->add('partitaIva', TextType::class, array(
                 'required' => false,
                 'constraints' => array( new Length( array( 'min' => 11, 'max' => 11, 'exactMessage' => 'La partita IVA deve avere 11 caratteri'
                 )))))
             ->add('residenza', TextType::class, array('required' => false))
-            ->add('sede_legale', TextType::class, array('required' => false))
+            ->add('sedeLegale', TextType::class, array('required' => false))
             ->add('telefono', TextType::class, array('required' => false))
             ->add('email', EmailType::class, array('required' => false))
             ->add('codiceDestinatario', TextType::class, array('required' => false))

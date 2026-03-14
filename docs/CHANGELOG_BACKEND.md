@@ -97,11 +97,11 @@ Stato: **✅ Maggior parte conforme — 1 anti-pattern aperto**
   - `ScadenzeController` riscritto: inietta i 4 Repository nel costruttore, chiama i metodi Repository, rimossi i 4 metodi privati e `EntityManagerInterface`
 - **Stato:** ✅ Risolto
 
-#### OPEN-03 — `AnagraficaType` usa nomi campo snake_case
+#### OPEN-03 — `AnagraficaType` usa nomi campo snake_case ✅ RISOLTO 2026-03-14
 - **File:** `src/Form/AnagraficaType.php`
-- **Descrizione:** Campi come `luogo_nascita`, `codice_fiscale`, `partita_iva`, `sede_legale` usano snake_case invece di camelCase. Funziona grazie al PropertyAccessor di Symfony, ma è un anti-pattern.
-- **Priorità:** Bassa (cosmetic)
-- **Stato:** ⚠️ Aperto
+- **Descrizione:** Campi `luogo_nascita`, `codice_fiscale`, `partita_iva`, `sede_legale` usavano snake_case invece dei nomi camelCase della property PHP.
+- **Fix applicato:** Rinominati in `luogoNascita`, `codiceFiscale`, `partitaIva`, `sedeLegale`. Il template `anagrafica/_form.html.twig` usava già i nomi camelCase — nessuna modifica al template necessaria.
+- **Stato:** ✅ Risolto
 
 #### OPEN-04 — `NotificaService::èGiàAvvisato` usa carattere non-ASCII nel nome
 - **File:** `src/Service/NotificaService.php`
