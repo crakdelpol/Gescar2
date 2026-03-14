@@ -40,11 +40,16 @@ Thumbs.db
 DumpGescar*.sql
 dump_*.sql
 
+# File temporanei editor/agenti
+*.tmp.*
+*.tmp
+
 # Uploads utenti (se presenti)
 /public/uploads/
 
-# Agenti AI (prompt locali, non per il repo)
+# Agenti AI e file di contesto (uso locale, non per il repo)
 /.agents/
+/CONTEXT.md
 
 # Build assets
 /public/build/
