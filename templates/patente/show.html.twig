@@ -1,38 +1,96 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Patente{% endblock %}
+{% block title %}Patente {{ patente.numeroPatente }} – Gescar{% endblock %}
 
 {% block body %}
-    <h1>Patente</h1>
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-card-checklist me-2 text-secondary"></i>
+        Patente <strong>{{ patente.numeroPatente ?: '—' }}</strong>
+    </h1>
+    <div class="d-flex gap-2">
+        <a href="{{ path('app_patente_index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Lista
+        </a>
+        <a href="{{ path('app_patente_edit', {'id': patente.id}) }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i>Modifica
+        </a>
+    </div>
+</div>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ patente.id }}</td>
-            </tr>
-            <tr>
-                <th>NumeroPatente</th>
-                <td>{{ patente.numeroPatente }}</td>
-            </tr>
-            <tr>
-                <th>CategoriaPatente</th>
-                <td>{{ patente.categoriaPatente ? patente.categoriaPatente|json_encode : '' }}</td>
-            </tr>
-            <tr>
-                <th>DataScadenzaPatente</th>
-                <td>{{ patente.dataScadenzaPatente ? patente.dataScadenzaPatente|date('Y-m-d') : '' }}</td>
-            </tr>
-            <tr>
-                <th>Note</th>
-                <td>{{ patente.note }}</td>
-            </tr>
-        </tbody>
-    </table>
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-card-checklist me-1"></i>Dati patente
+            </div>
+            <div class="card-body">
+                {% set oggi = "now"|date("Y-m-d") %}
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-muted">Numero patente</dt>
+                    <dd class="col-sm-7"><strong>{{ patente.numeroPatente ?: '–' }}</strong></dd>
 
-    <a href="{{ path('app_patente_index') }}">back to list</a>
+                    <dt class="col-sm-5 text-muted">Scadenza</dt>
+                    <dd class="col-sm-7">
+                        {% if patente.dataScadenzaPatente %}
+                            {% set scad = patente.dataScadenzaPatente|date("Y-m-d") %}
+                            {% if scad < oggi %}
+                                <span class="badge bg-danger">{{ patente.dataScadenzaPatente|date('d/m/Y') }}</span>
+                            {% elseif scad < ("now +30 days")|date("Y-m-d") %}
+                                <span class="badge bg-warning text-dark">{{ patente.dataScadenzaPatente|date('d/m/Y') }}</span>
+                            {% else %}
+                                <span class="badge bg-success">{{ patente.dataScadenzaPatente|date('d/m/Y') }}</span>
+                            {% endif %}
+                        {% else %}–{% endif %}
+                    </dd>
 
-    <a href="{{ path('app_patente_edit', {'id': patente.id}) }}">edit</a>
+                    <dt class="col-sm-5 text-muted">Categorie</dt>
+                    <dd class="col-sm-7">
+                        {% if patente.categoriaPatente %}
+                            {% for cat in patente.categoriaPatente %}
+                                <span class="badge bg-secondary me-1">{{ cat }}</span>
+                            {% endfor %}
+                        {% else %}–{% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
 
+    {% if patente.intestatario %}
+    <div class="col-md-6">
+        <div class="card h-100 border-start border-primary border-3">
+            <div class="card-body d-flex align-items-center gap-3">
+                <i class="bi bi-person-circle fs-4 text-primary"></i>
+                <div>
+                    <span class="text-muted small">Intestatario</span><br>
+                    <a href="{{ path('app_anagrafica_show', {'id': patente.intestatario.id}) }}" class="fw-semibold text-decoration-none">
+                        {{ patente.intestatario.cognome | capitalize }} {{ patente.intestatario.nome | capitalize }}
+                    </a>
+                    {% if patente.intestatario.telefono %}
+                        &nbsp;·&nbsp;
+                        <a href="tel:{{ patente.intestatario.telefono }}" class="text-decoration-none text-muted">
+                            <i class="bi bi-telephone me-1"></i>{{ patente.intestatario.telefono }}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if patente.note %}
+    <div class="col-12">
+        <div class="alert alert-light border d-flex align-items-start gap-2 mb-0">
+            <i class="bi bi-sticky text-warning mt-1"></i>
+            <span>{{ patente.note }}</span>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<hr>
+<div class="d-flex align-items-center gap-2">
     {{ include('patente/_delete_form.html.twig') }}
+</div>
 {% endblock %}

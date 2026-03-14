@@ -1,41 +1,74 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Patente index{% endblock %}
+{% block title %}Patenti – Gescar{% endblock %}
 
 {% block body %}
-    <h1>Patente index</h1>
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="bi bi-card-checklist me-2"></i>Patenti</h1>
+    <a href="{{ path('app_patente_new') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Nuova patente
+    </a>
+</div>
 
-    <table class="table">
-        <thead>
+<div class="table-responsive small">
+    <table class="table table-striped table-hover table-sm align-middle">
+        <thead class="table-dark">
             <tr>
-                <th>Id</th>
-                <th>NumeroPatente</th>
-                <th>CategoriaPatente</th>
-                <th>DataScadenzaPatente</th>
-                <th>Note</th>
-                <th>actions</th>
+                <th>Numero</th>
+                <th>Intestatario</th>
+                <th>Categorie</th>
+                <th>Scad. Patente</th>
+                <th class="text-end">Azioni</th>
             </tr>
         </thead>
         <tbody>
+        {% set oggi = "now"|date("Y-m-d") %}
         {% for patente in patentes %}
             <tr>
-                <td>{{ patente.id }}</td>
-                <td>{{ patente.numeroPatente }}</td>
-                <td>{{ patente.categoriaPatente ? patente.categoriaPatente|json_encode : '' }}</td>
-                <td>{{ patente.dataScadenzaPatente ? patente.dataScadenzaPatente|date('Y-m-d') : '' }}</td>
-                <td>{{ patente.note }}</td>
+                <td><strong>{{ patente.numeroPatente ?: '–' }}</strong></td>
                 <td>
-                    <a href="{{ path('app_patente_show', {'id': patente.id}) }}">show</a>
-                    <a href="{{ path('app_patente_edit', {'id': patente.id}) }}">edit</a>
+                    {% if patente.intestatario %}
+                        <a href="{{ path('app_anagrafica_show', {'id': patente.intestatario.id}) }}" class="text-decoration-none">
+                            {{ patente.intestatario.cognome | capitalize }} {{ patente.intestatario.nome | capitalize }}
+                        </a>
+                    {% else %}–{% endif %}
+                </td>
+                <td>
+                    {% if patente.categoriaPatente %}
+                        {% for cat in patente.categoriaPatente %}
+                            <span class="badge bg-secondary me-1">{{ cat }}</span>
+                        {% endfor %}
+                    {% else %}–{% endif %}
+                </td>
+                <td>
+                    {% if patente.dataScadenzaPatente %}
+                        {% set scad = patente.dataScadenzaPatente|date("Y-m-d") %}
+                        {% if scad < oggi %}
+                            <span class="badge bg-danger">{{ patente.dataScadenzaPatente|date('d/m/Y') }}</span>
+                        {% elseif scad < ("now +30 days")|date("Y-m-d") %}
+                            <span class="badge bg-warning text-dark">{{ patente.dataScadenzaPatente|date('d/m/Y') }}</span>
+                        {% else %}
+                            <span class="text-muted">{{ patente.dataScadenzaPatente|date('d/m/Y') }}</span>
+                        {% endif %}
+                    {% else %}<span class="text-muted">–</span>{% endif %}
+                </td>
+                <td class="text-end text-nowrap">
+                    <a href="{{ path('app_patente_show', {'id': patente.id}) }}" class="btn btn-sm btn-outline-secondary" title="Visualizza">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{{ path('app_patente_edit', {'id': patente.id}) }}" class="btn btn-sm btn-outline-primary" title="Modifica">
+                        <i class="bi bi-pencil"></i>
+                    </a>
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="6">no records found</td>
+                <td colspan="5" class="text-center text-muted py-4">
+                    <i class="bi bi-card-checklist me-2"></i>Nessuna patente trovata.
+                </td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
-
-    <a href="{{ path('app_patente_new') }}">Create new</a>
+</div>
 {% endblock %}

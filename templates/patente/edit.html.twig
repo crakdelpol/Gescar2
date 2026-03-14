@@ -1,13 +1,26 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Edit Patente{% endblock %}
+{% block title %}Modifica Patente {{ patente.numeroPatente }} – Gescar{% endblock %}
 
 {% block body %}
-    <h1>Edit Patente</h1>
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="bi bi-pencil me-2"></i>Modifica patente</h1>
+    <div class="d-flex gap-2">
+        <a href="{{ path('app_patente_show', {'id': patente.id}) }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Dettaglio
+        </a>
+        <a href="{{ path('app_patente_index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-card-checklist me-1"></i>Lista
+        </a>
+    </div>
+</div>
 
-    {{ include('patente/_form.html.twig', {'button_label': 'Update'}) }}
+<div class="card mb-3">
+    <div class="card-body">
+        {{ include('patente/_form.html.twig', {'button_label': 'Aggiorna'}) }}
+    </div>
+</div>
 
-    <a href="{{ path('app_patente_index') }}">back to list</a>
-
-    {{ include('patente/_delete_form.html.twig') }}
+<hr>
+{{ include('patente/_delete_form.html.twig') }}
 {% endblock %}
