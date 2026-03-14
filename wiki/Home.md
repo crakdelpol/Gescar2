@@ -36,8 +36,9 @@ Il database di produzione contiene circa **7.000 anagrafiche** e **4.500 veicoli
 | Layer | Tecnologia | Versione |
 |---|---|---|
 | Framework | Symfony | 7.3 |
-| Database | MySQL | 8.0 |
+| Database | MySQL | 8.0 (Docker) / 5.7 (prod) |
 | Frontend | Bootstrap | 5.3 CDN |
 | Auth | Symfony Security | nativo |
+| Email/WhatsApp | Symfony Mailer + NotificaInvioService | 7.3 |
 
 Repository: [github.com/CarloGagliolo/Gescar2](https://github.com/CarloGagliolo/Gescar2)

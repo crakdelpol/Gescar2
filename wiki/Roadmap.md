@@ -1,25 +1,10 @@
 # Roadmap
 
-Vedi anche `docs/04_ROADMAP.md` nel repository per la versione completa.
+Vedi anche `docs/04_ROADMAP.md` nel repository per la versione completa con changelog.
 
 ---
 
 ## 🔴 Alta Priorità
-
-### Ricerca Globale Navbar
-- Collegare il campo di ricerca in navbar → `AnagraficaController::index` con filtro `?q=`
-- `AnagraficaRepository::searchGlobale()` è già implementato (cerca per cognome/nome o targa)
-- Manca solo il collegamento nel controller
-
-### Pagina Cliente (show)
-- Completare `templates/anagrafica/show.html.twig`
-- Mostrare lista veicoli intestati al cliente
-- Mostrare storico notifiche del cliente
-- Mostrare scadenze attive (revisioni, assicurazioni, bolli, patente)
-
----
-
-## 🟡 Media Priorità
 
 ### Campo telefono2
 - Aggiungere `telefono2` all'entity `Anagrafica`
@@ -29,45 +14,47 @@ Vedi anche `docs/04_ROADMAP.md` nel repository per la versione completa.
 ### Paginazione Liste
 - Le liste (`anagrafica/index`, `vettura/index`, ecc.) non hanno paginazione
 - Valutare KnpPaginatorBundle o paginazione manuale con QueryBuilder
+- Necessaria prima del go-live (DB prod: ~7.000 anagrafiche)
+
+---
+
+## 🟡 Media Priorità
 
 ### DataFixtures Aggiornate
 - Aggiungere `User` e `Notifica` alle fixtures
 - Attualmente le fixtures non creano utenti (l'utente admin va inserito manualmente)
 
+### Indice su `assicurazione.data_scadenza_assicurazione`
+- Migration da aggiungere per migliorare performance query dashboard
+
 ### VetturaType — Choice Label
 - `VetturaType` mostra solo `cognome` nel choice label per intestatario
 - Migliorare con `cognome + ' ' + nome`
-
----
-
-## 🟢 Bassa Priorità / Future
-
-### Upgrade MySQL 8.0 → 8.4 LTS
-- Il DB di produzione è su MySQL 5.7
-- L'ambiente Docker è su MySQL 8.0
-- Target finale: MySQL 8.4 LTS
-
-### Upgrade Symfony 7.3 → 7.4 LTS
-- Attendere release stabile 7.4
-- Verificare deprecazioni attuali nel log
 
 ### Comando Console Crea Admin
 - Creare `src/Command/CreateAdminCommand.php`
 - Permettere `php bin/console app:create-admin email password`
 - Evita l'INSERT SQL manuale
 
+---
+
+## 🟢 Bassa Priorità / Future
+
+### Upgrade MySQL 5.7 → 8.4 LTS (produzione)
+- Il DB di produzione è su MySQL 5.7 (EOL ottobre 2023)
+- L'ambiente Docker è già su MySQL 8.0
+- Target finale: MySQL 8.4 LTS
+
+### Upgrade Symfony 7.3 → 7.4 LTS
+- Attendere release stabile 7.4
+- Verificare deprecazioni attuali nel log
+
 ### Export Scadenze PDF/Excel
 - Export della lista scadenze del mese in PDF o Excel
 - Utile per stampa e archiviazione
 
-### Invio Email/SMS Automatico
-- Integrazione Mailer Symfony per invio email automatiche
-- Invio SMS tramite provider (es. Twilio, Vonage)
-- Mailpit già configurato in Docker per test locali
-
 ### Dashboard Avanzata
 - Grafici scadenze per mese (Chart.js o Symfony UX)
-- Contatori per stato semaforo
 - Riepilogo notifiche della settimana
 
 ---
@@ -75,12 +62,17 @@ Vedi anche `docs/04_ROADMAP.md` nel repository per la versione completa.
 ## ✅ Completato
 
 - ✅ Login con Symfony Security nativo (sostituisce FOSUserBundle)
-- ✅ Entity User e Notifica
-- ✅ Bootstrap 4 → 5.3 CDN (zero jQuery)
+- ✅ Entity User e Notifica + tutte le migration (000–005)
+- ✅ Bootstrap 4 → 5.3 CDN (zero jQuery) — tutti i template riscritti
+- ✅ Dashboard KPI scadenze imminenti
 - ✅ Pagina scadenze con tab e badge semaforo
 - ✅ CRUD completo: Anagrafica, Vettura, Assicurazione, Bollo, Patente, Notifica
-- ✅ ScadenzaService e NotificaService
+- ✅ ScadenzaService, NotificaService, **NotificaInvioService** (email + WhatsApp)
+- ✅ Ricerca navbar collegata (`AnagraficaController::index` con `?q=`)
+- ✅ Pagina cliente (`anagrafica/show`) con lista veicoli e storico notifiche
+- ✅ Campo `esente_revisione` su Vettura
+- ✅ Campo `data_scadenza_impianto` (GPL/metano) su Vettura
 - ✅ Docker setup (MySQL 8.0 + phpMyAdmin + Mailpit)
 - ✅ Makefile con shortcut comandi
-- ✅ DataFixtures con dati realistici e date variegate
 - ✅ MonologBundle configurato
+- ✅ Documentazione: `06_BUNDLE_VERSIONS.md`, `07_ARCHITECTURE_DECISIONS.md`

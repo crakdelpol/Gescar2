@@ -1,6 +1,6 @@
 # CONTEXT.md — Gescar2
 > File di contesto per sessioni di sviluppo AI (Claude / Copilot).
-> Aggiornato al: **2026-03-11**
+> Aggiornato al: **2026-03-14**
 > Repository: https://github.com/CarloGagliolo/Gescar2
 
 ---
@@ -122,14 +122,14 @@ data_scadenza_patente, note,
 intestatario_id FK → anagrafica(id)   [OneToOne]
 ```
 
-### User → `user`  ← DA CREARE con Migration #4
+### User → `user`  ✅ Migration #3 eseguita
 ```
 id, email UNIQUE, roles JSON, password (bcrypt),
 nome, cognome, is_active
 ```
 Ruoli: `ROLE_ADMIN` (default), `ROLE_SUPER_ADMIN` (gerarchia)
 
-### Notifica → `notifica`  ← DA CREARE con Migration #3
+### Notifica → `notifica`  ✅ Migration #4 eseguita
 ```
 id,
 anagrafica_id FK → anagrafica(id) ON DELETE CASCADE,
@@ -200,6 +200,19 @@ $notificaService->getStoricoCliente($anagrafica);
 $notificaService->getRecenti($giorni = 7);
 ```
 
+### NotificaInvioService (`src/Service/NotificaInvioService.php`)
+Gestisce l'invio effettivo delle notifiche ai clienti e registrazione automatica nel log:
+```php
+// Email
+$notificaInvioService->inviaEmail($anagrafica, $tipo, $vettura, $utente);
+// WhatsApp
+$notificaInvioService->inviaWhatsApp($anagrafica, $tipo, $vettura, $utente);
+// Normalizza numero telefono → formato +39XXXXXXXXXX
+$notificaInvioService->normalizzaTelefono($raw);  // string|null
+```
+Usa `symfony/mailer` per email e logica custom per WhatsApp.
+Ogni invio registra automaticamente un record in `notifica`.
+
 ---
 
 ## 7. Repository — metodi custom
@@ -243,15 +256,16 @@ $notificaService->getRecenti($giorni = 7);
 
 ---
 
-## 9. Migrations pendenti (da eseguire in ordine)
+## 9. Migrations (tutte presenti — applicare in ordine)
 
-| File | Cosa fa | Priorità |
+| File | Cosa fa | Stato |
 |---|---|---|
-| `Version20260310004_User_Create.php` | Crea tabella `user` | 🔴 Blocca il login |
-| `Version20260310003_Notifica_Create.php` | Crea tabella `notifica` | 🔴 Dipende da user |
-| `Version20260310005_Vettura_Indici.php` | Indici su date + `esente_revisione` | 🟡 Performance |
-| `Version20260310001_Bollo_StoricoPagamento.php` | Rimuove UNIQUE bollo + nuovi campi | 🟡 Feature |
-| `Version20260310002_Assicurazione_Storico.php` | Rimuove UNIQUE assicurazione + nuovi campi | 🟡 Feature |
+| `Version20260310000_InitialSchema.php` | Schema iniziale (anagrafica, vettura, patente, assicurazione, bollo) | ✅ |
+| `Version20260310001_Bollo_StoricoPagamento.php` | Rimuove UNIQUE bollo + nuovi campi | ✅ |
+| `Version20260310002_Assicurazione_Storico.php` | Rimuove UNIQUE assicurazione + nuovi campi | ✅ |
+| `Version20260310003_User_Create.php` | Crea tabella `user` per Symfony Security | ✅ |
+| `Version20260310004_Notifica_Create.php` | Crea tabella `notifica` con FK | ✅ |
+| `Version20260310005_Vettura_Indici.php` | Indici su date + `esente_revisione` | ✅ |
 
 **Comando:** `php bin/console doctrine:migrations:migrate`
 
@@ -261,17 +275,18 @@ $notificaService->getRecenti($giorni = 7);
 
 | Componente | Stato | Note |
 |---|---|---|
-| Login / Security | ✅ Configurato | `security.yaml` + `SecurityController` + `User` entity pronti. Manca solo la migration del DB |
-| Dashboard | ✅ Strutturata | Template e controller pronti, dipende da migrations |
-| Scadenze (home) | ✅ Funzionante | Refactoring fatto, badge semaforo, Bootstrap 5 Tabs |
-| Anagrafica CRUD | ✅ Funzionante | Form validato |
-| Vettura CRUD | ✅ Funzionante | Include link intestatario |
-| Assicurazione CRUD | ✅ Funzionante | OneToOne corretto — una sola assicurazione per veicolo |
-| Bollo CRUD | ✅ Funzionante | OneToOne corretto — un solo bollo per veicolo |
-| Patente CRUD | ✅ Funzionante | categoriaPatente come JSON array |
-| Notifiche CRUD | ✅ Strutturato | Controller + Form + Template pronti, dipende da migration |
-| Ricerca globale | ⚠️ Parziale | Navbar invia GET a `/anagrafica?q=...` ma AnagraficaController::index non filtra ancora |
-| DataFixtures | ⚠️ Presenti | Non aggiornate con User/Notifica |
+| Login / Security | ✅ Funzionante | `security.yaml` + `SecurityController` + `User` entity + migration pronti |
+| Dashboard | ✅ Funzionante | KPI scadenze imminenti con `ScadenzaService::getSommarioDashboard()` |
+| Scadenze (home) | ✅ Funzionante | Badge semaforo, Bootstrap 5 Tabs |
+| Anagrafica CRUD | ✅ Funzionante | Form validato. `show()` include lista veicoli + storico notifiche |
+| Vettura CRUD | ✅ Funzionante | Include `esenteRevisione`, `dataScadenzaImpianto`, badge semaforo |
+| Assicurazione CRUD | ✅ Funzionante | OneToOne corretto — storico rinnovi supportato (campo `attiva`) |
+| Bollo CRUD | ✅ Funzionante | OneToOne corretto — storico rinnovi supportato (campo `attiva`) |
+| Patente CRUD | ✅ Funzionante | `categoriaPatente` come JSON array |
+| Notifiche CRUD | ✅ Funzionante | Controller + Form + Template pronti, migration applicata |
+| Invio notifiche | ✅ Implementato | `NotificaInvioService`: invio email (Mailer) e WhatsApp, log automatico |
+| Ricerca globale | ✅ Funzionante | `AnagraficaController::index()` filtra con `?q=` tramite `searchGlobale()` |
+| DataFixtures | ⚠️ Parziale | Non aggiornate con User/Notifica |
 
 ---
 
@@ -284,13 +299,14 @@ $notificaService->getRecenti($giorni = 7);
 - `Anagrafica` ha solo `telefono` (singolo) — le business rules prevedono `telefono1` + `telefono2`.
 
 ### TODO funzionali (da docs/04_ROADMAP.md)
-- [ ] Collegare ricerca navbar → `AnagraficaController::index` con filtro `?q=`
+- [x] Collegare ricerca navbar → `AnagraficaController::index` con filtro `?q=` — ✅ fatto 2026-03-14
 - [ ] Aggiungere `telefono2` all'entity Anagrafica
 - [x] Aggiungere `esente_revisione` (boolean) all'entity Vettura — ✅ fatto 2026-03-12
 - [ ] DataFixtures aggiornate con `User` e `Notifica`
-- [ ] Creare primo utente admin via console command
-- [ ] Completare template `anagrafica/show.html.twig` con lista veicoli e storico notifiche
+- [x] Completare template `anagrafica/show.html.twig` con lista veicoli e storico notifiche — ✅ fatto 2026-03-14
 - [ ] Aggiungere paginazione alle liste (KnpPaginatorBundle o manuale)
+- [ ] Indice su `assicurazione.data_scadenza_assicurazione`
+- [ ] Upgrade Symfony 7.3 → 7.4 LTS
 
 ---
 

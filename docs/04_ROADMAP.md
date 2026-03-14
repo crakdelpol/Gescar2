@@ -21,69 +21,28 @@ WHERE TABLE_SCHEMA = 'gescar';
 
 ---
 
-### [STACK-02] PHP 7.x → 8.4
-**Perché:** PHP 7.x è fuori supporto. PHP 8.4 è richiesto da Symfony 7.4+.  
-**Principali breaking change da gestire:**
-- Controllo tipi più strict: rivedere funzioni che usano `null` implicitamente
-- `str_contains()`, `array_is_list()` e altre funzioni ora native (rimuovere eventuali polyfill)
-- Attributi PHP 8 (`#[...]`) al posto delle annotazioni Doctrine (`@ORM\...`) — già previsto nelle convention
-
-```bash
-# Tool utile per analizzare compatibilità
-composer require --dev rector/rector
-```
+### ✅ [STACK-02] PHP 7.x → 8.4
+**Stato:** ✅ Completato — PHP 8.2 in esecuzione (target 8.4, compatibile).
+Attributi PHP 8 (`#[ORM\...]`) già usati in tutte le Entity. Polyfill rimossi in `composer.json`.
 
 ---
 
-### [STACK-03] Symfony 3.x/4.x → 7.4 LTS
-**Perché:** Symfony 7.4 LTS è supportato con bugfix fino a novembre 2026 e security fix fino a novembre 2027.  
-**Strategia consigliata:** non aggiornare in-place, ma creare un **nuovo progetto Symfony 7.4** e migrare il codice progressivamente entità per entità.  
-**Passi principali:**
-1. Creare nuovo progetto: `composer create-project symfony/skeleton gescar-new`
-2. Installare dipendenze: `orm`, `twig`, `form`, `validator`, `security`, `mailer`
-3. Ricreare le Entity con attributi PHP 8 (non annotazioni)
-4. Migrare i Controller uno alla volta
-5. Migrare i template Twig (sintassi compatibile, pochi aggiustamenti)
-6. Sostituire FOSUserBundle con Security nativo (vedi STACK-04)
+### ✅ [STACK-03] Symfony 3.x/4.x → 7.4 LTS
+**Stato:** ✅ Completato — Symfony **7.3** in esecuzione (v7.3.11). Nuovo progetto creato da zero, tutte le Entity riscritte con attributi PHP 8.
+
+**Prossimo step:** aggiornare il constraint da `7.3.*` a `7.4.*` in `composer.json` quando Symfony 7.4 sarà disponibile.
 
 ---
 
-### [STACK-04] FOSUserBundle → Symfony Security nativo
-**Perché:** FOSUserBundle è abbandonato e incompatibile con Symfony 6+.  
-**Azione:**
-1. Creare Entity `User` nativa
-2. Configurare `security.yaml` con provider Doctrine
-3. Migrare i 3 utenti esistenti (le password bcrypt sono riusabili)
-4. Implementare login form con `SecurityController`
-
-```php
-#[ORM\Entity]
-class User implements UserInterface, PasswordAuthenticatedUserInterface
-{
-    #[ORM\Column(length: 180, unique: true)]
-    private string $email;
-
-    #[ORM\Column]
-    private array $roles = [];
-
-    #[ORM\Column]
-    private string $password;
-    // ...
-}
-```
+### ✅ [STACK-04] FOSUserBundle → Symfony Security nativo
+**Stato:** ✅ Completato — `src/Entity/User.php` implementa `UserInterface` + `PasswordAuthenticatedUserInterface`.
+Migration `Version20260310003_User_Create.php` presente. `SecurityController` + `security.yaml` configurati.
+Ruoli: `ROLE_ADMIN` (default) e `ROLE_SUPER_ADMIN`.
 
 ---
 
-### [STACK-05] Bootstrap 3.x/4.x → 5.3.8
-**Perché:** Bootstrap 5 rimuove la dipendenza da jQuery, introduce CSS custom properties e un sistema utility più moderno.  
-**Principali breaking change rispetto a Bootstrap 4:**
-- `mr-*` / `ml-*` → `me-*` / `ms-*` (margin end/start)
-- `float-left` / `float-right` → `float-start` / `float-end`
-- `text-left` / `text-right` → `text-start` / `text-end`
-- jQuery non più incluso — rimuovere dipendenze jQuery dal JS custom
-- Gutter nelle griglie cambiato: `no-gutters` → `g-0`
-
-**Tool utile:** https://upgrade-guide.bootstrap.com (migrazione automatica classi)
+### ✅ [STACK-05] Bootstrap 3.x/4.x → 5.3.8
+**Stato:** ✅ Completato — Bootstrap 5.3 via CDN in tutti i template. Zero jQuery. Classi aggiornate (`me-*`, `ms-*`, `data-bs-*`). Tutti i template riescritti (vedi `docs/CHANGELOG_FRONTEND.md`).
 
 ---
 
@@ -99,61 +58,32 @@ Poi valutare migrazione dati verso `patente` + `anagrafica` ed eliminazione dell
 
 ---
 
-### [DB-02] Rimuovere UNIQUE su `assicurazione.vettura_id`
-**Problema:** Impedisce lo storico dei rinnovi assicurativi.  
-**Azione:**
-```sql
-ALTER TABLE assicurazione
-  DROP INDEX UNIQ_8C972D79FC739189,
-  ADD COLUMN attiva TINYINT(1) DEFAULT 1,
-  ADD COLUMN data_inizio DATE NULL,
-  ADD COLUMN compagnia VARCHAR(100) NULL,
-  ADD COLUMN numero_polizza VARCHAR(100) NULL;
-```
-Aggiornare le Entity Doctrine e i Form Symfony di conseguenza.
+### ✅ [DB-02] Rimuovere UNIQUE su `assicurazione.vettura_id`
+**Stato:** ✅ Completato — Migration `Version20260310002_Assicurazione_Storico.php` applicata.
+Campi aggiunti: `attiva`, `data_inizio`, `compagnia`, `numero_polizza`, `created_at`. Relazione rimane OneToOne a livello applicativo.
 
 ---
 
-### [DB-03] Rimuovere UNIQUE su `bollo.vettura_id` e aggiungere campi mancanti
-**Problema:** La tabella `bollo` esiste già con ~468 record, ma la UNIQUE su `vettura_id` impedisce lo storico dei rinnovi annuali. Mancano inoltre campi per importo, super bollo e stato pagamento.  
-**Azione (additiva — nessun dato esistente viene modificato):**
-```sql
-ALTER TABLE bollo
-  DROP INDEX UNIQ_131D5E43FC739189,
-  ADD COLUMN attiva TINYINT(1) DEFAULT 1,
-  ADD COLUMN importo DECIMAL(8,2) NULL,
-  ADD COLUMN super_bollo DECIMAL(8,2) NULL,
-  ADD COLUMN pagato TINYINT(1) DEFAULT 0,
-  ADD COLUMN data_pagamento DATE NULL,
-  ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP;
-```
-Aggiornare Entity `Bollo` e Form Symfony di conseguenza.  
-Aggiungere indice: `ADD INDEX idx_scad_bollo (data_scadenza_bollo);`
+### ✅ [DB-03] Rimuovere UNIQUE su `bollo.vettura_id` e aggiungere campi mancanti
+**Stato:** ✅ Completato — Migration `Version20260310001_Bollo_StoricoPagamento.php` applicata.
+Campi aggiunti: `attiva`, `importo`, `super_bollo`, `pagato`, `data_pagamento`, `created_at`. Relazione rimane OneToOne a livello applicativo.
 
 ---
 
-### [DB-04] Creare tabella `notifica`
-**Problema:** Gli avvisi sono tracciati solo con booleani (`Avvisato`) o testi liberi nelle note.  
-**Azione:** Creare tabella `notifica` (vedi `02_DATABASE_SCHEMA.md`) + interfaccia di registrazione avvisi.
+### ✅ [DB-04] Creare tabella `notifica`
+**Stato:** ✅ Completato — Migration `Version20260310004_Notifica_Create.php` presente. Entity `Notifica`, `NotificaController`, `NotificaService`, `NotificaInvioService` (email + WhatsApp) tutti implementati.
 
 ---
 
-### [AUTH-01] Migrare da FOSUserBundle a Symfony Security
-**Vedi [STACK-04]** — questo task è parte integrante della migrazione stack Symfony.  
-Trattarlo come task separato solo se si vuole anticiparlo senza aggiornare Symfony.
+### ✅ [AUTH-01] Migrare da FOSUserBundle a Symfony Security
+**Stato:** ✅ Completato — vedi [STACK-04].
 
 ---
 
 ## Priorità Media 🟡
 
-### [FEAT-01] Dashboard scadenze imminenti
-Creare una view dedicata che mostri in un colpo d'occhio:
-- Revisioni in scadenza nei prossimi 30/60/90 giorni
-- Assicurazioni in scadenza nei prossimi 30 giorni
-- Patenti in scadenza nei prossimi 60 giorni
-- Bolli in scadenza nel mese corrente
-
-Usare colori Bootstrap (`table-danger`, `table-warning`, `table-success`) per lo stato.
+### ✅ [FEAT-01] Dashboard scadenze imminenti
+**Stato:** ✅ Completato — `DashboardController` + `ScadenzaService::getSommarioDashboard()` implementati. KPI card con badge semaforo (danger/warning/info/success). Bootstrap Tabs per le viste per tipo di scadenza.
 
 ---
 
@@ -165,24 +95,14 @@ Usare colori Bootstrap (`table-danger`, `table-warning`, `table-success`) per lo
 
 ---
 
-### [FEAT-03] Campo `esente_revisione` su `vettura`
-**Problema:** Veicoli con "NO REVISIONE" nelle note inquinano le liste scadenze.  
-**Azione:**
-```sql
-ALTER TABLE vettura ADD COLUMN esente_revisione TINYINT(1) DEFAULT 0;
-```
-Poi aggiornare le query per escludere questi veicoli.
+### ✅ [FEAT-03] Campo `esente_revisione` su `vettura`
+**Stato:** ✅ Completato — `Vettura::$esenteRevisione` (bool, default false) presente nell'entity. Migration `Version20260310005_Vettura_Indici.php` include il campo. Badge "Esente revisione" mostrato in `vettura/show.html.twig`.
 
 ---
 
-### [FEAT-04] Campo `data_scadenza_bombole` su `vettura`
-**Problema:** Scadenza collaudo GPL/metano gestita solo con testo libero nelle note.  
-**Azione:**
-```sql
-ALTER TABLE vettura
-  ADD COLUMN tipo_alimentazione ENUM('benzina','diesel','gpl','metano','ibrido','elettrico') DEFAULT 'benzina',
-  ADD COLUMN data_scadenza_bombole DATE NULL;
-```
+### ✅ [FEAT-04] Campo scadenza impianto GPL/metano su `vettura`
+**Stato:** ✅ Parzialmente completato — `Vettura::$dataScadenzaImpianto` (DateTime nullable) presente nell'entity, mostrato come badge semaforo in `vettura/show.html.twig`. Il campo `carburante` gestisce il tipo di alimentazione. Campo rinominato da `data_scadenza_bombole` a `data_scadenza_impianto`.
+**Pendente:** aggiungere `tipo_alimentazione` come ENUM separato dal campo `carburante` (attualmente stringa libera).
 
 ---
 
@@ -194,8 +114,9 @@ ALTER TABLE vettura
 
 ## Priorità Bassa 🟢
 
-### [UX-01] Ricerca globale unificata
-Un campo di ricerca unico che cerchi contemporaneamente per cognome, targa e numero patente.
+### ✅ [UX-01] Ricerca globale navbar
+**Stato:** ✅ Completato — `AnagraficaController::index()` legge `?q=` e usa `AnagraficaRepository::searchGlobale()` (cerca per cognome/nome e targa veicolo). Template mostra banner feedback con contatore risultati e bottone "Cancella ricerca".
+**Pendente:** estendere la ricerca a numero patente.
 
 ### [UX-02] Export CSV/Excel delle scadenze
 Permettere all'operatore di esportare la lista scadenze filtrata per poi lavorarla offline.
@@ -211,13 +132,9 @@ ALTER TABLE anagrafica CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_
 -- Ripetere per tutte le tabelle
 ```
 
-### [TECH-02] Aggiungere indici sulle date di scadenza
-```sql
-ALTER TABLE vettura ADD INDEX idx_scad_revisione (data_scadenza_revisione);
-ALTER TABLE assicurazione ADD INDEX idx_scad_assicurazione (data_scadenza_assicurazione);
-ALTER TABLE patente ADD INDEX idx_scad_patente (data_scadenza_patente);
-```
-Migliorano le performance delle query di dashboard che filtrano per data.
+### ✅ [TECH-02] Aggiungere indici sulle date di scadenza
+**Stato:** ✅ Parzialmente completato — Migration `Version20260310005_Vettura_Indici.php` aggiunge `idx_scad_revisione` su `vettura.data_scadenza_revisione` e `idx_scad_patente` su `patente.data_scadenza_patente`.
+**Pendente:** indice su `assicurazione.data_scadenza_assicurazione` (da aggiungere in futura migration).
 
 ---
 
@@ -229,3 +146,8 @@ Migliorano le performance delle query di dashboard che filtrano per data.
 | 2026-03 | 0.2 | Analisi DB, identificazione problemi strutturali |
 | 2026-03 | 0.3 | Correzione: tabella `bollo` già presente con ~468 record |
 | 2026-03 | 0.4 | Definizione versioni target stack tecnologico, aggiunta roadmap migrazione |
+| 2026-03-10 | 0.5 | Scritte tutte le migration (000–005): schema iniziale, bollo, assicurazione, user, notifica, indici+esente_revisione |
+| 2026-03-10 | 0.5 | Implementate entity `User` e `Notifica`. Configurata autenticazione Symfony Security nativa. |
+| 2026-03-11 | 0.6 | `NotificaService` e `NotificaController` implementati. `ScadenzaService` con semaforo stati. Dashboard con KPI. |
+| 2026-03-12 | 0.7 | `Vettura::$esenteRevisione` aggiunto. `AnagraficaController::show()` arricchito con vetture e storico notifiche. |
+| 2026-03-14 | 0.8 | Riscrittura completa template Bootstrap 5 (anagrafica, vettura). Ricerca navbar `?q=` collegata. `NotificaInvioService` (email + WhatsApp) aggiunto. Documentazione aggiornata (roadmap, bundle versions, ADR). |
