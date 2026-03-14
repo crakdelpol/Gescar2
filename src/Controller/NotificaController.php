@@ -160,7 +160,7 @@ final class NotificaController extends AbstractController
         }
 
         // Registra la notifica nel DB
-        $this->invioService->logWhatsApp($anagrafica, $tipo, $targa ?: null);
+        $this->invioService->logWhatsApp($anagrafica, $tipo, $targa ?: null, $this->getUser());
 
         return $this->json(['url' => $result['url']]);
     }
@@ -196,7 +196,7 @@ final class NotificaController extends AbstractController
         $dataObj = $data ? \DateTime::createFromFormat('Y-m-d', $data) : null;
 
         try {
-            $this->invioService->inviaEmail($anagrafica, $tipo, $dataObj ?: null, $targa ?: null);
+            $this->invioService->inviaEmail($anagrafica, $tipo, $dataObj ?: null, $targa ?: null, $this->getUser());
             $this->addFlash('success', sprintf(
                 'Email inviata a %s %s (%s).',
                 $anagrafica->getCognome(),

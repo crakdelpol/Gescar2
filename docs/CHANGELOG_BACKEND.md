@@ -77,12 +77,15 @@ Stato: **✅ Maggior parte conforme — 1 anti-pattern aperto**
 
 ### Issue aperti (ereditati da BUG_REPORT.md + nuova verifica)
 
-#### OPEN-01 — `NotificaInvioService::log()` non registra l'utente mittente
+#### OPEN-01 — `NotificaInvioService::log()` non registra l'utente mittente ✅ RISOLTO 2026-03-14
 - **File:** `src/Service/NotificaInvioService.php`
-- **Descrizione:** Il metodo privato `log()` non accetta né imposta il parametro `$utente`. Le notifiche inviate via email/WhatsApp automatico hanno `utente_id = NULL`.
-- **Impatto:** Audit trail incompleto.
-- **Priorità:** Media
-- **Stato:** ⚠️ Aperto
+- **Descrizione:** Il metodo privato `log()` non accettava né impostava il parametro `$utente`. Le notifiche inviate via email/WhatsApp avevano sempre `utente_id = NULL`.
+- **Fix applicato:**
+  - Aggiunto `use App\Entity\User;` agli import
+  - Aggiunto `?User $utente = null` a `log()`, `logWhatsApp()`, `inviaEmail()`
+  - Aggiunto `$notifica->setUtente($utente)` nel body di `log()`
+  - Parametro opzionale (`= null`): retrocompatibile con tutti i chiamanti esistenti
+- **Stato:** ✅ Risolto
 
 #### OPEN-02 — `ScadenzeController` ha query DQL nei metodi privati (anti-pattern)
 - **File:** `src/Controller/ScadenzeController.php` righe 104–165

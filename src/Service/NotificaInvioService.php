@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Anagrafica;
 use App\Entity\Notifica;
+use App\Entity\User;
 use App\Repository\NotificaRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mailer\MailerInterface;
@@ -122,8 +123,9 @@ class NotificaInvioService
         Anagrafica $anagrafica,
         string     $tipoScadenza,
         ?string    $targa = null,
+        ?User      $utente = null,
     ): Notifica {
-        return $this->log($anagrafica, $tipoScadenza, Notifica::CANALE_WHATSAPP, Notifica::ESITO_INVIATA, $targa);
+        return $this->log($anagrafica, $tipoScadenza, Notifica::CANALE_WHATSAPP, Notifica::ESITO_INVIATA, $targa, $utente);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -139,6 +141,7 @@ class NotificaInvioService
         string             $tipoScadenza,
         ?\DateTimeInterface $dataScadenza,
         ?string            $targa = null,
+        ?User              $utente = null,
     ): Notifica {
         if (empty($anagrafica->getEmail())) {
             throw new \RuntimeException(
@@ -169,7 +172,7 @@ class NotificaInvioService
 
         $this->mailer->send($email);
 
-        return $this->log($anagrafica, $tipoScadenza, Notifica::CANALE_EMAIL, Notifica::ESITO_INVIATA, $targa);
+        return $this->log($anagrafica, $tipoScadenza, Notifica::CANALE_EMAIL, Notifica::ESITO_INVIATA, $targa, $utente);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -182,12 +185,14 @@ class NotificaInvioService
         string     $canale,
         string     $esito,
         ?string    $targa,
+        ?User      $utente = null,
     ): Notifica {
         $notifica = new Notifica();
         $notifica->setAnagrafica($anagrafica);
         $notifica->setTipoScadenza($tipoScadenza);
         $notifica->setCanale($canale);
         $notifica->setEsito($esito);
+        $notifica->setUtente($utente);
         if ($targa) {
             $notifica->setNote("Veicolo targa: $targa");
         }
