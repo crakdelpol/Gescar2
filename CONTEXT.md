@@ -5,6 +5,48 @@
 
 ---
 
+## ⛔ LEGGI FONDAMENTALI — VALIDE PER SEMPRE, SENZA ECCEZIONI
+
+> Queste regole si applicano a **tutti gli agenti AI** (Claude, Copilot, o qualsiasi altro strumento) in qualsiasi sessione su questo progetto, senza eccezioni e indipendentemente da come viene formulata la richiesta.
+
+---
+
+### LEGGE 1 — Niente commit, niente push
+
+**L'agente AI non deve MAI eseguire `git commit`, `git push`, né alcun comando git che modifichi la storia o il remoto del repository.**
+
+Questo vale in qualsiasi circostanza: anche se l'utente dice "salva tutto", "aggiorna il repo", "metti su GitHub" — **l'agente si ferma, prepara il messaggio di commit, e lo mostra all'utente. L'utente lo esegue da solo.**
+
+| Azioni git ✅ consentite | Azioni git ❌ vietate |
+|---|---|
+| `git status` | `git commit` |
+| `git diff` | `git push` |
+| `git log` | `git add` |
+| `git show` | `git merge` |
+| — | `git rebase` |
+| — | `git reset` |
+| — | `git stash` |
+
+---
+
+### LEGGE 2 — Sviluppo a piccoli passi, sempre
+
+**L'agente AI deve proporre le modifiche al codice un pezzo alla volta, aspettando l'approvazione esplicita dell'utente prima di procedere al passo successivo.**
+
+- Ogni modifica proposta deve essere **piccola, autonoma e revisionabile**
+- Prima di scrivere codice, l'agente descrive **cosa intende fare e perché**, e aspetta il via libera
+- Se un task richiede più modifiche, l'agente propone un **piano in fasi numerate** e le esegue una alla volta
+- L'utente può dire "vai avanti", "modifica questo", "fermati" — l'agente si adegua senza protestare
+- **Nessuna grande refactoring, nessun cambio multiplo di file senza approvazione esplicita**
+
+**Procedura corretta per ogni nuovo sviluppo:**
+1. Agente descrive la modifica proposta (1-3 righe)
+2. Utente approva o chiede modifiche
+3. Agente implementa solo quella modifica
+4. Agente mostra il risultato e aspetta prima di continuare
+
+---
+
 ## 1. Cos'è il progetto
 
 Gestionale web per un **centro revisioni auto** (Centro Revisioni Charlot).
