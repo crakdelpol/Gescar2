@@ -29,7 +29,7 @@ final class ScadenzeController extends AbstractController
     public function index(EntityManagerInterface $em): Response
     {
         $dataScadenza  = date('Y-m-d');
-        $aDataScadenza = date('Y-m-d', strtotime('+1 months'));
+        $aDataScadenza = (new \DateTime())->modify('+1 month')->format('Y-m-d');
 
         $form = $this->createForm(ScadenzaType::class, [
             'dataScadenza'  => new \DateTime($dataScadenza),

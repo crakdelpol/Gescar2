@@ -28,6 +28,7 @@ class VetturaRepository extends ServiceEntityRepository
             ->join('v.intestatario', 'ana')
             ->where('v.dataScadenzaRevisione BETWEEN :da AND :a')
             ->andWhere('v.dataScadenzaRevisione IS NOT NULL')
+            ->andWhere('v.esenteRevisione = false')
             ->setParameter('da', $da)
             ->setParameter('a', $a)
             ->orderBy('v.dataScadenzaRevisione', 'ASC')

@@ -99,7 +99,7 @@ class Vettura
         return $this->marca;
     }
 
-    public function setMarca(string $marca): static
+    public function setMarca(?string $marca): static
     {
         $this->marca = $marca;
 

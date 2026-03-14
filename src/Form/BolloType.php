@@ -25,7 +25,7 @@ class BolloType extends AbstractType
             ->add('note', TextareaType::class, array('required' => false))
             ->add('vettura', EntityType::class, [
                 'class' => Vettura::class,
-                'choice_label' => 'id',
+                'choice_label' => fn(Vettura $v) => ($v->getTarga() ?? '—') . ' ' . ($v->getMarca() ?? '') . ' ' . ($v->getModello() ?? ''),
             ])
             //->add('salva', SubmitType::class)
         ;

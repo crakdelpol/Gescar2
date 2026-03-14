@@ -6,7 +6,6 @@ use App\Entity\Anagrafica;
 use App\Entity\Notifica;
 use App\Form\NotificaType;
 use App\Repository\AnagraficaRepository;
-use App\Repository\NotificaRepository;
 use App\Service\NotificaInvioService;
 use App\Service\NotificaService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -29,7 +28,6 @@ final class NotificaController extends AbstractController
      */
     #[Route('/', name: 'index', methods: ['GET'])]
     public function index(
-        NotificaRepository $repo,
         Request $request
     ): Response {
         $giorni    = (int) $request->query->get('giorni', 30);

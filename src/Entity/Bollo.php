@@ -40,6 +40,14 @@ class Bollo
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $note = null;
 
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['default' => 'CURRENT_TIMESTAMP'])]
+    private ?\DateTime $createdAt = null;
+
+    public function __construct()
+    {
+        $this->createdAt = new \DateTime();
+    }
+
     // ── Getter / Setter ────────────────────────────────────────────────────────
 
     public function getId(): ?int { return $this->id; }
@@ -67,4 +75,7 @@ class Bollo
 
     public function getNote(): ?string { return $this->note; }
     public function setNote(?string $note): static { $this->note = $note; return $this; }
+
+    public function getCreatedAt(): ?\DateTime { return $this->createdAt; }
+    public function setCreatedAt(\DateTime $createdAt): static { $this->createdAt = $createdAt; return $this; }
 }

@@ -12,13 +12,17 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class AnagraficaType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
-            ->add('cognome', TextType::class , array('required' => true))
+            ->add('cognome', TextType::class , array(
+                'required' => true,
+                'constraints' => [new NotBlank(['message' => 'Il cognome è obbligatorio'])],
+            ))
             ->add('nome', TextType::class , array('required' => false))
             ->add('tipo', ChoiceType::class, array(
                 'choices'  => array(
