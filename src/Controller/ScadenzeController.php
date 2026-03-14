@@ -2,15 +2,12 @@
 
 namespace App\Controller;
 
-use App\Entity\Assicurazione;
-use App\Entity\Bollo;
-use App\Entity\Patente;
-use App\Entity\Vettura;
 use App\Form\ScadenzaType;
+use App\Repository\AssicurazioneRepository;
+use App\Repository\BolloRepository;
+use App\Repository\PatenteRepository;
+use App\Repository\VetturaRepository;
 use App\Service\ScadenzaService;
-use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Query\Parameter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,14 +16,18 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ScadenzeController extends AbstractController
 {
     public function __construct(
-        private readonly ScadenzaService $scadenzaService
+        private readonly ScadenzaService         $scadenzaService,
+        private readonly BolloRepository         $bolloRepo,
+        private readonly AssicurazioneRepository  $assicurazioneRepo,
+        private readonly PatenteRepository        $patenteRepo,
+        private readonly VetturaRepository        $vetturaRepo,
     ) {}
 
     /**
      * Home: semaforo immediato + scadenze del periodo corrente (oggi → +30 giorni).
      */
     #[Route('/', name: 'app_scadenze_home')]
-    public function index(EntityManagerInterface $em): Response
+    public function index(): Response
     {
         $dataScadenza  = date('Y-m-d');
         $aDataScadenza = (new \DateTime())->modify('+1 month')->format('Y-m-d');
@@ -43,10 +44,10 @@ final class ScadenzeController extends AbstractController
         ]);
 
         return $this->render('scadenze/index.html.twig', [
-            'bolli'           => $this->queryBolli($dataScadenza, $aDataScadenza, $em),
-            'assicurazioni'   => $this->queryAssicurazioni($dataScadenza, $aDataScadenza, $em),
-            'patenti'         => $this->queryPatenti($dataScadenza, $aDataScadenza, $em),
-            'vetture'         => $this->queryRevisioni($dataScadenza, $aDataScadenza, $em),
+            'bolli'           => $this->bolloRepo->findInRange(new \DateTime($dataScadenza), new \DateTime($aDataScadenza)),
+            'assicurazioni'   => $this->assicurazioneRepo->findInRange(new \DateTime($dataScadenza), new \DateTime($aDataScadenza)),
+            'patenti'         => $this->patenteRepo->findInRange(new \DateTime($dataScadenza), new \DateTime($aDataScadenza)),
+            'vetture'         => $this->vetturaRepo->findRevisioniInRange(new \DateTime($dataScadenza), new \DateTime($aDataScadenza)),
             'dataScadenza'    => $dataScadenza,
             'aDataScadenza'   => $aDataScadenza,
             'search_form'     => $form->createView(),
@@ -60,10 +61,9 @@ final class ScadenzeController extends AbstractController
      */
     #[Route('/scadenze/{dataScadenza}/{aDataScadenza}', name: 'app_scadenze_index')]
     public function search(
-        string $dataScadenza,
-        string $aDataScadenza,
+        string  $dataScadenza,
+        string  $aDataScadenza,
         Request $request,
-        EntityManagerInterface $em
     ): Response {
         $form = $this->createForm(ScadenzaType::class, [
             'dataScadenza'  => new \DateTime($dataScadenza),
@@ -86,81 +86,19 @@ final class ScadenzeController extends AbstractController
             ]);
         }
 
+        $da = new \DateTime($dataScadenza);
+        $a  = new \DateTime($aDataScadenza);
+
         return $this->render('scadenze/index.html.twig', [
-            'bolli'           => $this->queryBolli($dataScadenza, $aDataScadenza, $em),
-            'assicurazioni'   => $this->queryAssicurazioni($dataScadenza, $aDataScadenza, $em),
-            'patenti'         => $this->queryPatenti($dataScadenza, $aDataScadenza, $em),
-            'vetture'         => $this->queryRevisioni($dataScadenza, $aDataScadenza, $em),
+            'bolli'           => $this->bolloRepo->findInRange($da, $a),
+            'assicurazioni'   => $this->assicurazioneRepo->findInRange($da, $a),
+            'patenti'         => $this->patenteRepo->findInRange($da, $a),
+            'vetture'         => $this->vetturaRepo->findRevisioniInRange($da, $a),
             'dataScadenza'    => $dataScadenza,
             'aDataScadenza'   => $aDataScadenza,
             'search_form'     => $form->createView(),
             'scadenzaService' => $this->scadenzaService,
             'sommario'        => $this->scadenzaService->getSommarioDashboard(),
         ]);
-    }
-
-    // ── Query private ────────────────────────────────────────────────────────
-
-    private function queryBolli(string $da, string $a, EntityManagerInterface $em): array
-    {
-        return $em->getRepository(Bollo::class)
-            ->createQueryBuilder('b')
-            ->join('b.vettura', 'v')
-            ->join('v.intestatario', 'ana')
-            ->where('b.dataScadenzaBollo BETWEEN :da AND :a')
-            ->setParameters(new ArrayCollection([
-                new Parameter('da', $da),
-                new Parameter('a', $a),
-            ]))
-            ->orderBy('b.dataScadenzaBollo', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    private function queryAssicurazioni(string $da, string $a, EntityManagerInterface $em): array
-    {
-        return $em->getRepository(Assicurazione::class)
-            ->createQueryBuilder('ass')
-            ->join('ass.vettura', 'v')
-            ->join('v.intestatario', 'ana')
-            ->where('ass.dataScadenzaAssicurazione BETWEEN :da AND :a')
-            ->setParameters(new ArrayCollection([
-                new Parameter('da', $da),
-                new Parameter('a', $a),
-            ]))
-            ->orderBy('ass.dataScadenzaAssicurazione', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    private function queryPatenti(string $da, string $a, EntityManagerInterface $em): array
-    {
-        return $em->getRepository(Patente::class)
-            ->createQueryBuilder('p')
-            ->join('p.intestatario', 'ana')
-            ->where('p.dataScadenzaPatente BETWEEN :da AND :a')
-            ->setParameters(new ArrayCollection([
-                new Parameter('da', $da),
-                new Parameter('a', $a),
-            ]))
-            ->orderBy('p.dataScadenzaPatente', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    private function queryRevisioni(string $da, string $a, EntityManagerInterface $em): array
-    {
-        return $em->getRepository(Vettura::class)
-            ->createQueryBuilder('v')
-            ->join('v.intestatario', 'ana')
-            ->where('v.dataScadenzaRevisione BETWEEN :da AND :a')
-            ->andWhere('v.esenteRevisione = false')
-            ->setParameters(new ArrayCollection([
-                new Parameter('da', $da),
-                new Parameter('a', $a),
-            ]))
-            ->orderBy('v.dataScadenzaRevisione', 'ASC')
-            ->getQuery()
-            ->getResult();
     }
 }

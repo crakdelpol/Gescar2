@@ -34,4 +34,22 @@ class PatenteRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Patenti con scadenza in un intervallo di date arbitrario.
+     * Usata dalla pagina Scadenze per la ricerca per periodo.
+     *
+     * @return Patente[]
+     */
+    public function findInRange(\DateTimeInterface $da, \DateTimeInterface $a): array
+    {
+        return $this->createQueryBuilder('p')
+            ->join('p.intestatario', 'ana')
+            ->where('p.dataScadenzaPatente BETWEEN :da AND :a')
+            ->setParameter('da', $da)
+            ->setParameter('a', $a)
+            ->orderBy('p.dataScadenzaPatente', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

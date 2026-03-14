@@ -87,17 +87,15 @@ Stato: **✅ Maggior parte conforme — 1 anti-pattern aperto**
   - Parametro opzionale (`= null`): retrocompatibile con tutti i chiamanti esistenti
 - **Stato:** ✅ Risolto
 
-#### OPEN-02 — `ScadenzeController` ha query DQL nei metodi privati (anti-pattern)
-- **File:** `src/Controller/ScadenzeController.php` righe 104–165
-- **Descrizione:** Quattro metodi privati (`queryBolli`, `queryAssicurazioni`, `queryPatenti`, `queryRevisioni`) eseguono query DQL tramite QueryBuilder direttamente nel Controller, in violazione della convenzione che vuole le query solo nei Repository.
-- **Refactoring proposto:** Spostare ognuno nel rispettivo Repository:
-  - `queryBolli()` → `BolloRepository::findInRange()`
-  - `queryAssicurazioni()` → `AssicurazioneRepository::findInRange()`
-  - `queryPatenti()` → `PatenteRepository::findInRange()`  (già esiste `findInScadenza`, ma ha firma diversa)
-  - `queryRevisioni()` → `VetturaRepository::findRevisioniInRange()` (già esiste, verificare allineamento)
-- **Nota:** Funzionalità attuale corretta. È un refactoring di qualità, non un bug urgente.
-- **Priorità:** Bassa
-- **Stato:** ⚠️ Aperto
+#### OPEN-02 — `ScadenzeController` ha query DQL nei metodi privati (anti-pattern) ✅ RISOLTO 2026-03-14
+- **File modificati:** `src/Controller/ScadenzeController.php`, `src/Repository/AssicurazioneRepository.php`, `src/Repository/PatenteRepository.php`
+- **Descrizione:** Quattro metodi privati (`queryBolli`, `queryAssicurazioni`, `queryPatenti`, `queryRevisioni`) eseguivano query DQL nel Controller.
+- **Fix applicato:**
+  - Aggiunto `AssicurazioneRepository::findInRange($da, $a)` (già esisteva solo `findInScadenza` con firma diversa)
+  - Aggiunto `PatenteRepository::findInRange($da, $a)` (già esisteva solo `findInScadenza` con firma diversa)
+  - `BolloRepository::findInRange()` e `VetturaRepository::findRevisioniInRange()` già esistenti e compatibili
+  - `ScadenzeController` riscritto: inietta i 4 Repository nel costruttore, chiama i metodi Repository, rimossi i 4 metodi privati e `EntityManagerInterface`
+- **Stato:** ✅ Risolto
 
 #### OPEN-03 — `AnagraficaType` usa nomi campo snake_case
 - **File:** `src/Form/AnagraficaType.php`

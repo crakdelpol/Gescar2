@@ -36,4 +36,23 @@ class AssicurazioneRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Assicurazioni con scadenza in un intervallo di date arbitrario.
+     * Usata dalla pagina Scadenze per la ricerca per periodo.
+     *
+     * @return Assicurazione[]
+     */
+    public function findInRange(\DateTimeInterface $da, \DateTimeInterface $a): array
+    {
+        return $this->createQueryBuilder('ass')
+            ->join('ass.vettura', 'v')
+            ->join('v.intestatario', 'ana')
+            ->where('ass.dataScadenzaAssicurazione BETWEEN :da AND :a')
+            ->setParameter('da', $da)
+            ->setParameter('a', $a)
+            ->orderBy('ass.dataScadenzaAssicurazione', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }
