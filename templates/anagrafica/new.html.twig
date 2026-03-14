@@ -1,13 +1,18 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Nuova Anagrafica{% endblock %}
+{% block title %}Nuovo Cliente – Anagrafica{% endblock %}
 
 {% block body %}
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="bi bi-person-plus me-2"></i>Nuovo cliente</h1>
+    <a href="{{ path('app_anagrafica_index') }}" class="btn btn-sm btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Lista clienti
+    </a>
+</div>
 
-    <h1>Create new Anagrafica</h1>
-
-    {{ include('anagrafica/_form.html.twig') }}
-
-    <a href="{{ path('app_anagrafica_index') }}">back to list</a>
-
+<div class="card">
+    <div class="card-body">
+        {{ include('anagrafica/_form.html.twig') }}
+    </div>
+</div>
 {% endblock %}

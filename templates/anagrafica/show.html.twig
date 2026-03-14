@@ -1,50 +1,249 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Anagrafica{% endblock %}
+{% block title %}{{ anagrafica.cognome }} {{ anagrafica.nome }} – Anagrafica{% endblock %}
 
 {% block body %}
-    <h1>Anagrafica</h1>
+{# ── Intestazione pagina ─────────────────────────────────────────────── #}
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-person-circle me-2 text-secondary"></i>
+        {{ anagrafica.cognome | capitalize }} {{ anagrafica.nome | capitalize }}
+        {% if anagrafica.tipo == 'azienda' %}
+            <span class="badge bg-info text-dark ms-2"><i class="bi bi-building me-1"></i>Azienda</span>
+        {% else %}
+            <span class="badge bg-secondary ms-2"><i class="bi bi-person me-1"></i>Privato</span>
+        {% endif %}
+    </h1>
+    <div class="d-flex gap-2">
+        <a href="{{ path('app_anagrafica_index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Lista
+        </a>
+        <a href="{{ path('app_anagrafica_edit', {'id': anagrafica.id}) }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i>Modifica
+        </a>
+        <a href="{{ path('app_notifica_new_per_cliente', {'id': anagrafica.id}) }}" class="btn btn-sm btn-success">
+            <i class="bi bi-bell-plus me-1"></i>Nuova notifica
+        </a>
+    </div>
+</div>
 
-    <table class="table">
-        <tbody>
+{# ── Dati anagrafici ─────────────────────────────────────────────────── #}
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-person-lines-fill me-1"></i>Dati personali
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-4 text-muted">Cognome</dt>
+                    <dd class="col-sm-8">{{ anagrafica.cognome | capitalize ?: '–' }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Nome</dt>
+                    <dd class="col-sm-8">{{ anagrafica.nome | capitalize ?: '–' }}</dd>
+
+                    <dt class="col-sm-4 text-muted">Telefono</dt>
+                    <dd class="col-sm-8">
+                        {% if anagrafica.telefono %}
+                            <a href="tel:{{ anagrafica.telefono }}">{{ anagrafica.telefono }}</a>
+                        {% else %}–{% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4 text-muted">Email</dt>
+                    <dd class="col-sm-8">
+                        {% if anagrafica.email %}
+                            <a href="mailto:{{ anagrafica.email }}">{{ anagrafica.email }}</a>
+                        {% else %}–{% endif %}
+                    </dd>
+
+                    <dt class="col-sm-4 text-muted">Luogo nascita</dt>
+                    <dd class="col-sm-8">{{ anagrafica.luogoNascita | capitalize ?: '–' }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-receipt me-1"></i>Dati fiscali / sede
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-muted">Codice fiscale</dt>
+                    <dd class="col-sm-7"><code>{{ anagrafica.codiceFiscale ?: '–' }}</code></dd>
+
+                    <dt class="col-sm-5 text-muted">Partita IVA</dt>
+                    <dd class="col-sm-7"><code>{{ anagrafica.partitaIva ?: '–' }}</code></dd>
+
+                    <dt class="col-sm-5 text-muted">Residenza</dt>
+                    <dd class="col-sm-7">{{ anagrafica.residenza | capitalize ?: '–' }}</dd>
+
+                    <dt class="col-sm-5 text-muted">Sede legale</dt>
+                    <dd class="col-sm-7">{{ anagrafica.sedeLegale | capitalize ?: '–' }}</dd>
+
+                    <dt class="col-sm-5 text-muted">Cod. destinatario</dt>
+                    <dd class="col-sm-7">{{ anagrafica.codiceDestinatario ?: '–' }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    {% if anagrafica.note %}
+    <div class="col-12">
+        <div class="alert alert-light border d-flex align-items-start gap-2 mb-0">
+            <i class="bi bi-sticky text-warning mt-1"></i>
+            <span>{{ anagrafica.note }}</span>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{# ── Veicoli intestati ───────────────────────────────────────────────── #}
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h2 class="h5 mb-0"><i class="bi bi-car-front me-1"></i>Veicoli intestati
+        <span class="badge bg-secondary ms-1">{{ vetture | length }}</span>
+    </h2>
+    <a href="{{ path('app_vettura_new') }}" class="btn btn-sm btn-outline-primary">
+        <i class="bi bi-plus-lg me-1"></i>Aggiungi veicolo
+    </a>
+</div>
+
+{% if vetture is empty %}
+    <p class="text-muted small">Nessun veicolo intestato a questo cliente.</p>
+{% else %}
+<div class="table-responsive mb-4">
+    <table class="table table-sm table-hover align-middle">
+        <thead class="table-light">
             <tr>
-                <th>Id</th>
-                <td>{{ anagrafica.id }}</td>
-            </tr>
-            <tr>
-                <th>Cliente</th>
-                <td>{{ anagrafica.nome | capitalize }} {{ anagrafica.cognome | capitalize }}</td>
-            </tr>
-            <tr>
-                <th>Telefono</th>
-                <td>{{ anagrafica.telefono }}</td>
-            </tr>
-            <tr>
-                <th>Email</th>
-                <td>{{ anagrafica.email }}</td>
-            </tr>
-            <tr>
+                <th>Targa</th>
                 <th>Tipo</th>
-                <td>{{ anagrafica.tipo }}</td>
+                <th>Marca / Modello</th>
+                <th>Carburante</th>
+                <th>Scad. Revisione</th>
+                <th>Esente</th>
+                <th></th>
             </tr>
+        </thead>
+        <tbody>
+        {% for v in vetture %}
             <tr>
-                <th>Residenza</th>
-                <td>{{ anagrafica.residenza }}</td>
+                <td><strong>{{ v.targa ?: '–' }}</strong></td>
+                <td>{{ v.tipo | capitalize ?: '–' }}</td>
+                <td>{{ v.marca ?: '' }} {{ v.modello ?: '' }}</td>
+                <td>{{ v.carburante | capitalize ?: '–' }}</td>
+                <td>
+                    {% if v.dataScadenzaRevisione %}
+                        {% set oggi = "now"|date("Y-m-d") %}
+                        {% set scad = v.dataScadenzaRevisione|date("Y-m-d") %}
+                        {% if scad < oggi %}
+                            <span class="badge bg-danger">{{ v.dataScadenzaRevisione|date('d/m/Y') }}</span>
+                        {% elseif scad < ("now +30 days")|date("Y-m-d") %}
+                            <span class="badge bg-warning text-dark">{{ v.dataScadenzaRevisione|date('d/m/Y') }}</span>
+                        {% else %}
+                            <span class="badge bg-success">{{ v.dataScadenzaRevisione|date('d/m/Y') }}</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-muted">–</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if v.esenteRevisione %}
+                        <i class="bi bi-check-circle-fill text-secondary" title="Esente da revisione"></i>
+                    {% endif %}
+                </td>
+                <td class="text-nowrap">
+                    <a href="{{ path('app_vettura_show', {'id': v.id}) }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{{ path('app_vettura_edit', {'id': v.id}) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                </td>
             </tr>
-            <tr>
-                <th>Sede Legale</th>
-                <td>{{ anagrafica.sedeLegale }}</td>
-            </tr>           
-            <tr>
-                <th>Codice fiscale</th>
-                <td>{{ anagrafica.codiceFiscale }}</td>
-            </tr>
+        {% endfor %}
         </tbody>
     </table>
+</div>
+{% endif %}
 
-    <a href="{{ path('app_anagrafica_index') }}">back to list</a>
+{# ── Storico notifiche ───────────────────────────────────────────────── #}
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <h2 class="h5 mb-0"><i class="bi bi-bell me-1"></i>Storico notifiche
+        <span class="badge bg-secondary ms-1">{{ notifiche | length }}</span>
+    </h2>
+    <a href="{{ path('app_notifica_new_per_cliente', {'id': anagrafica.id}) }}" class="btn btn-sm btn-outline-success">
+        <i class="bi bi-plus-lg me-1"></i>Registra notifica
+    </a>
+</div>
 
-    <a href="{{ path('app_anagrafica_edit', {'id': anagrafica.id}) }}">edit</a>
+{% if notifiche is empty %}
+    <p class="text-muted small">Nessuna notifica registrata per questo cliente.</p>
+{% else %}
+<div class="table-responsive mb-4">
+    <table class="table table-sm table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Data/Ora</th>
+                <th>Tipo scadenza</th>
+                <th>Veicolo</th>
+                <th>Canale</th>
+                <th>Esito</th>
+                <th>Note</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for n in notifiche %}
+            {% set tipo_badge = {
+                'revisione':    'primary',
+                'assicurazione':'warning',
+                'bollo':        'info',
+                'patente':      'secondary'
+            } %}
+            {% set esito_badge = {
+                'inviata':          'success',
+                'non_risponde':     'warning',
+                'rinnovato':        'primary',
+                'non_interessato':  'secondary'
+            } %}
+            <tr>
+                <td class="text-nowrap">{{ n.dataInvio|date('d/m/Y H:i') }}</td>
+                <td>
+                    <span class="badge bg-{{ tipo_badge[n.tipoScadenza] ?? 'secondary' }}">
+                        {{ n.tipoScadenza | capitalize }}
+                    </span>
+                </td>
+                <td>{{ n.vettura ? n.vettura.targa : '–' }}</td>
+                <td>{{ n.canale | capitalize }}</td>
+                <td>
+                    {% if n.esito %}
+                        <span class="badge bg-{{ esito_badge[n.esito] ?? 'secondary' }}">
+                            {{ n.esito | replace({'_': ' '}) | capitalize }}
+                        </span>
+                    {% else %}
+                        <span class="text-muted">–</span>
+                    {% endif %}
+                </td>
+                <td class="text-truncate" style="max-width:200px" title="{{ n.note }}">{{ n.note ?: '' }}</td>
+                <td class="text-nowrap">
+                    <a href="{{ path('app_notifica_show', {'id': n.id}) }}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{{ path('app_notifica_edit', {'id': n.id}) }}" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
 
+{# ── Azioni pericolose ───────────────────────────────────────────────── #}
+<hr>
+<div class="d-flex align-items-center gap-2">
     {{ include('anagrafica/_delete_form.html.twig') }}
+</div>
 {% endblock %}

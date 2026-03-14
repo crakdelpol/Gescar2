@@ -1,4 +1,44 @@
-{{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'needs-validation', 'id': 'vettura-form'}}) }}
+    <div class="row g-3">
+        <div class="col-md-4">{{ form_row(form.targa,        {'attr': {'class': 'form-control text-uppercase'}}) }}</div>
+        <div class="col-md-4">{{ form_row(form.numeroTelaio, {'attr': {'class': 'form-control text-uppercase'}}) }}</div>
+        <div class="col-md-4">{{ form_row(form.tipo,          {'attr': {'class': 'form-select'}}) }}</div>
+        <div class="col-md-4">{{ form_row(form.marca,        {'attr': {'class': 'form-control'}}) }}</div>
+        <div class="col-md-4">{{ form_row(form.modello,      {'attr': {'class': 'form-control'}}) }}</div>
+        <div class="col-md-4">{{ form_row(form.carburante,   {'attr': {'class': 'form-select'}}) }}</div>
+        <div class="col-md-4">{{ form_row(form.dataUltimaRevisione,  {'attr': {'class': 'form-control'}}) }}</div>
+        <div class="col-md-4">{{ form_row(form.dataScadenzaRevisione,{'attr': {'class': 'form-control'}}) }}</div>
+        <div class="col-md-4">{{ form_row(form.dataScadenzaImpianto, {'attr': {'class': 'form-control'}}) }}</div>
+        <div class="col-12">{{ form_row(form.intestatario,   {'attr': {'class': 'form-select'}}) }}</div>
+        <div class="col-12">{{ form_row(form.note,           {'attr': {'class': 'form-control', 'rows': '3'}}) }}</div>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>{{ button_label|default('Salva') }}
+        </button>
+        <a href="{{ path('app_vettura_index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg me-1"></i>Annulla
+        </a>
+    </div>
 {{ form_end(form) }}
+
+<script>
+(function () {
+    'use strict';
+    var form = document.getElementById('vettura-form');
+    if (!form) return;
+    // Bootstrap 5 – validazione client-side con feedback visivo
+    form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    }, false);
+    // Uppercase automatico per targa e numero telaio
+    form.querySelectorAll('.text-uppercase').forEach(function(el) {
+        el.addEventListener('input', function() { this.value = this.value.toUpperCase(); });
+    });
+})();
+</script>

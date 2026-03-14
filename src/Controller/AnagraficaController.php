@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Entity\Anagrafica;
 use App\Repository\AnagraficaRepository;
+use App\Repository\NotificaRepository;
+use App\Repository\VetturaRepository;
 use App\Form\AnagraficaType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -50,10 +52,18 @@ final class AnagraficaController extends AbstractController
     }
 
     #[Route('{id}', name: 'app_anagrafica_show', methods: ['GET'])]
-    public function show(Anagrafica $anagrafica): Response
-    {
+    public function show(
+        Anagrafica $anagrafica,
+        VetturaRepository $vetturaRepository,
+        NotificaRepository $notificaRepository
+    ): Response {
+        $vetture    = $vetturaRepository->findBy(['intestatario' => $anagrafica], ['targa' => 'ASC']);
+        $notifiche  = $notificaRepository->findByAnagrafica($anagrafica);
+
         return $this->render('anagrafica/show.html.twig', [
             'anagrafica' => $anagrafica,
+            'vetture'    => $vetture,
+            'notifiche'  => $notifiche,
         ]);
     }
 

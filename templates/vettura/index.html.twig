@@ -1,53 +1,72 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Vettura index{% endblock %}
+{% block title %}Veicoli – Gescar{% endblock %}
 
 {% block body %}
-    <h1>Vettura index</h1>
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="bi bi-car-front me-2"></i>Veicoli</h1>
+    <a href="{{ path('app_vettura_new') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i>Nuovo veicolo
+    </a>
+</div>
 
-    <table class="table table-striped table-sm">
-        <thead>
+<div class="table-responsive small">
+    <table class="table table-striped table-hover table-sm align-middle">
+        <thead class="table-dark">
             <tr>
-                <th>Id</th>
                 <th>Targa</th>
-                <th>NumeroTelaio</th>
                 <th>Tipo</th>
-                <th>Marca</th>
-                <th>Modello</th>
+                <th>Marca / Modello</th>
                 <th>Carburante</th>
-                <th>DataUltimaRevisione</th>
-                <th>DataScadenzaRevisione</th>
-                <th>Data Scadenza Impianto</th>
-                <th>Note</th>
-                <th>actions</th>
+                <th>Intestatario</th>
+                <th>Scad. Revisione</th>
+                <th class="text-end">Azioni</th>
             </tr>
         </thead>
         <tbody>
+        {% set oggi = "now"|date("Y-m-d") %}
         {% for vettura in vetturas %}
             <tr>
-                <td>{{ vettura.id }}</td>
-                <td>{{ vettura.targa }}</td>
-                <td>{{ vettura.numeroTelaio }}</td>
-                <td>{{ vettura.tipo }}</td>
-                <td>{{ vettura.marca }}</td>
-                <td>{{ vettura.modello }}</td>
-                <td>{{ vettura.carburante }}</td>
-                <td>{{ vettura.dataUltimaRevisione ? vettura.dataUltimaRevisione|date('Y-m-d') : '' }}</td>
-                <td>{{ vettura.dataScadenzaRevisione ? vettura.dataScadenzaRevisione|date('Y-m-d') : '' }}</td>
-                <td>{{ vettura.dataScadenzaImpianto ? vettura.dataScadenzaImpianto|date('Y-m-d') : '' }}</td>
-                <td>{{ vettura.note }}</td>
+                <td><strong>{{ vettura.targa ?: '–' }}</strong></td>
+                <td>{{ vettura.tipo | capitalize ?: '–' }}</td>
+                <td>{{ vettura.marca ?: '' }} {{ vettura.modello ?: '' }}</td>
+                <td>{{ vettura.carburante | capitalize ?: '–' }}</td>
                 <td>
-                    <a href="{{ path('app_vettura_show', {'id': vettura.id}) }}">show</a>
-                    <a href="{{ path('app_vettura_edit', {'id': vettura.id}) }}">edit</a>
+                    {% if vettura.intestatario %}
+                        <a href="{{ path('app_anagrafica_show', {'id': vettura.intestatario.id}) }}" class="text-decoration-none">
+                            {{ vettura.intestatario.cognome | capitalize }} {{ vettura.intestatario.nome | capitalize }}
+                        </a>
+                    {% else %}–{% endif %}
+                </td>
+                <td>
+                    {% if vettura.dataScadenzaRevisione %}
+                        {% set scad = vettura.dataScadenzaRevisione|date("Y-m-d") %}
+                        {% if scad < oggi %}
+                            <span class="badge bg-danger">{{ vettura.dataScadenzaRevisione|date('d/m/Y') }}</span>
+                        {% elseif scad < ("now +30 days")|date("Y-m-d") %}
+                            <span class="badge bg-warning text-dark">{{ vettura.dataScadenzaRevisione|date('d/m/Y') }}</span>
+                        {% else %}
+                            <span class="text-muted">{{ vettura.dataScadenzaRevisione|date('d/m/Y') }}</span>
+                        {% endif %}
+                    {% else %}<span class="text-muted">–</span>{% endif %}
+                </td>
+                <td class="text-end text-nowrap">
+                    <a href="{{ path('app_vettura_show', {'id': vettura.id}) }}" class="btn btn-sm btn-outline-secondary" title="Visualizza">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{{ path('app_vettura_edit', {'id': vettura.id}) }}" class="btn btn-sm btn-outline-primary" title="Modifica">
+                        <i class="bi bi-pencil"></i>
+                    </a>
                 </td>
             </tr>
         {% else %}
             <tr>
-                <td colspan="10">no records found</td>
+                <td colspan="7" class="text-center text-muted py-4">
+                    <i class="bi bi-car-front me-2"></i>Nessun veicolo trovato.
+                </td>
             </tr>
         {% endfor %}
         </tbody>
     </table>
-
-    <a href="{{ path('app_vettura_new') }}">Create new</a>
+</div>
 {% endblock %}

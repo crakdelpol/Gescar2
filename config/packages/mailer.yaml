@@ -1,0 +1,6 @@
+framework:
+    mailer:
+        dsn: '%env(MAILER_DSN)%'
+        envelope:
+            # Tutti i messaggi usano questo mittente come "envelope sender"
+            sender: '%env(CENTRO_EMAIL_MITTENTE)%'

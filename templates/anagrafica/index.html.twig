@@ -1,45 +1,80 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Anagrafica index{% endblock %}
+{% block title %}Clienti – Anagrafica{% endblock %}
 
 {% block body %}
-    <h1>Anagrafica</h1>
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2"><i class="bi bi-people me-2"></i>Clienti</h1>
+    <a href="{{ path('app_anagrafica_new') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-person-plus me-1"></i>Nuovo cliente
+    </a>
+</div>
 
-    <div class="table-responsive small">
-        <table class="table table-striped table-sm">
-            <thead>
-                <tr>
-                    <th>Cliente</th>
-                    <th>Tipo</th>
-                    <th>Telefono</th>
-                    <th>Residenza</th>
-                    <th>Sede Legale</th>
-                    <th>actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for cliente in anagrafiche %}
-                    <tr>
-                        <td>{{ cliente.nome | capitalize }} {{ cliente.cognome | capitalize }}</td>
-                        <td>{{ cliente.tipo }}</td>
-                        <td>{{ cliente.telefono }}</td>
-                        <td>{{ cliente.residenza | capitalize }}</td>
-                        <td>{{ cliente.sedeLegale | capitalize }}</td>
-                        <td>
-                            <a href="{{ path('app_anagrafica_show', {'id': cliente.id}) }}">show</a>
-                            <a href="{{ path('app_anagrafica_edit', {'id': cliente.id}) }}">edit</a>
-                        </td>
-                    </tr>
-                {% else %}
-                <tr>
-                    <td colspan="6">no records found</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-
-         <a href="{{ path('app_anagrafica_new') }}">Create new</a>
+{# Feedback ricerca attiva #}
+{% if q is defined and q %}
+    <div class="alert alert-info alert-dismissible d-flex align-items-center gap-2 py-2" role="alert">
+        <i class="bi bi-search"></i>
+        Risultati per <strong>{{ q }}</strong>
+        &mdash; {{ anagrafiche | length }} trovati
+        <a href="{{ path('app_anagrafica_index') }}" class="btn btn-sm btn-outline-secondary ms-auto">
+            <i class="bi bi-x-lg me-1"></i>Cancella ricerca
+        </a>
+        <button type="button" class="btn-close ms-1" data-bs-dismiss="alert"></button>
     </div>
+{% endif %}
 
+<div class="table-responsive small">
+    <table class="table table-striped table-hover table-sm align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Cliente</th>
+                <th>Tipo</th>
+                <th>Telefono</th>
+                <th>Residenza / Sede</th>
+                <th class="text-end">Azioni</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in anagrafiche %}
+                <tr>
+                    <td>
+                        <a href="{{ path('app_anagrafica_show', {'id': cliente.id}) }}" class="text-decoration-none fw-semibold">
+                            {{ cliente.cognome | capitalize }} {{ cliente.nome | capitalize }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if cliente.tipo == 'azienda' %}
+                            <span class="badge bg-info text-dark"><i class="bi bi-building me-1"></i>Azienda</span>
+                        {% else %}
+                            <span class="badge bg-secondary"><i class="bi bi-person me-1"></i>Privato</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if cliente.telefono %}
+                            <a href="tel:{{ cliente.telefono }}" class="text-decoration-none">{{ cliente.telefono }}</a>
+                        {% else %}–{% endif %}
+                    </td>
+                    <td>{{ (cliente.tipo == 'azienda' ? cliente.sedeLegale : cliente.residenza) | capitalize ?: '–' }}</td>
+                    <td class="text-end text-nowrap">
+                        <a href="{{ path('app_anagrafica_show', {'id': cliente.id}) }}" class="btn btn-sm btn-outline-secondary" title="Visualizza">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ path('app_anagrafica_edit', {'id': cliente.id}) }}" class="btn btn-sm btn-outline-primary" title="Modifica">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="bi bi-search me-2"></i>Nessun cliente trovato.
+                        {% if q is defined and q %}
+                            <a href="{{ path('app_anagrafica_index') }}">Mostra tutti</a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}

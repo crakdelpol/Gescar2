@@ -15,6 +15,39 @@
 {% endmacro %}
 {% import _self as macro %}
 
+{# ── Macro pulsanti azione notifica ────────────────────────────────────── #}
+{% macro azioni_notifica(anaId, tipo, dataYmd, targa, email) %}
+    {# WhatsApp — validazione e apertura wa.me gestite da JS #}
+    <button type="button" class="btn btn-sm btn-success"
+            data-wa-ana="{{ anaId }}"
+            data-wa-tipo="{{ tipo }}"
+            data-wa-data="{{ dataYmd }}"
+            data-wa-targa="{{ targa }}"
+            onclick="inviaWhatsApp(this)"
+            title="Invia WhatsApp">
+        <i class="bi bi-whatsapp"></i>
+    </button>
+    {# Email — form POST, redirect con flash #}
+    {% if email %}
+    <form method="post" action="{{ path('app_notifica_invia_email') }}" class="d-inline ms-1">
+        <input type="hidden" name="anaId"   value="{{ anaId }}">
+        <input type="hidden" name="tipo"    value="{{ tipo }}">
+        <input type="hidden" name="data"    value="{{ dataYmd }}">
+        <input type="hidden" name="targa"   value="{{ targa }}">
+        <input type="hidden" name="_token"  value="{{ csrf_token('notifica_email') }}">
+        <input type="hidden" name="_ref"    value="{{ app.request.uri }}">
+        <button type="submit" class="btn btn-sm btn-outline-primary" title="Invia email a {{ email }}">
+            <i class="bi bi-envelope"></i>
+        </button>
+    </form>
+    {% else %}
+    <button type="button" class="btn btn-sm btn-outline-secondary ms-1 disabled"
+            title="Nessuna email registrata per questo cliente">
+        <i class="bi bi-envelope-x"></i>
+    </button>
+    {% endif %}
+{% endmacro %}
+
 {# ── Intestazione ──────────────────────────────────────────────────────── #}
 <div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
     <h1 class="h2 mb-0">
@@ -183,11 +216,12 @@
                        href="{{ path('app_vettura_edit', {id: v.id}) }}" title="Modifica">
                         <i class="bi bi-pencil"></i>
                     </a>
-                    <a class="btn btn-sm btn-outline-primary ms-1"
-                       href="{{ path('app_notifica_new_per_cliente', {id: v.intestatario.id}) }}"
-                       title="Registra notifica">
-                        <i class="bi bi-bell"></i>
-                    </a>
+                    {{ macro.azioni_notifica(
+                        v.intestatario.id, 'revisione',
+                        v.dataScadenzaRevisione ? v.dataScadenzaRevisione|date('Y-m-d') : '',
+                        v.targa,
+                        v.intestatario.email
+                    ) }}
                 </td>
             </tr>
         {% endfor %}
@@ -234,12 +268,13 @@
                 <td>{{ a.compagnia ?? '–' }}</td>
                 <td>{{ macro.badge_scadenza(a.dataScadenzaAssicurazione, scadenzaService) }}</td>
                 <td>{{ a.note }}</td>
-                <td>
-                    <a class="btn btn-sm btn-outline-primary"
-                       href="{{ path('app_notifica_new_per_cliente', {id: a.vettura.intestatario.id}) }}"
-                       title="Registra notifica">
-                        <i class="bi bi-bell"></i>
-                    </a>
+                <td class="text-nowrap">
+                    {{ macro.azioni_notifica(
+                        a.vettura.intestatario.id, 'assicurazione',
+                        a.dataScadenzaAssicurazione ? a.dataScadenzaAssicurazione|date('Y-m-d') : '',
+                        a.vettura.targa,
+                        a.vettura.intestatario.email
+                    ) }}
                 </td>
             </tr>
         {% endfor %}
@@ -271,6 +306,7 @@
                 <th>Importo</th>
                 <th>Scadenza</th>
                 <th>Note</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -287,6 +323,14 @@
                 <td>{{ b.importo ? '€ ' ~ b.importo : '–' }}</td>
                 <td>{{ macro.badge_scadenza(b.dataScadenzaBollo, scadenzaService) }}</td>
                 <td>{{ b.note }}</td>
+                <td class="text-nowrap">
+                    {{ macro.azioni_notifica(
+                        b.vettura.intestatario.id, 'bollo',
+                        b.dataScadenzaBollo ? b.dataScadenzaBollo|date('Y-m-d') : '',
+                        b.vettura.targa,
+                        b.vettura.intestatario.email
+                    ) }}
+                </td>
             </tr>
         {% endfor %}
         </tbody>
@@ -332,11 +376,17 @@
                 <td>{{ p.categoriaPatente ? p.categoriaPatente|join(', ') : '–' }}</td>
                 <td>{{ macro.badge_scadenza(p.dataScadenzaPatente, scadenzaService) }}</td>
                 <td>{{ p.note }}</td>
-                <td>
+                <td class="text-nowrap">
                     <a class="btn btn-sm btn-outline-secondary"
                        href="{{ path('app_patente_edit', {id: p.id}) }}" title="Modifica">
                         <i class="bi bi-pencil"></i>
                     </a>
+                    {{ macro.azioni_notifica(
+                        p.intestatario.id, 'patente',
+                        p.dataScadenzaPatente ? p.dataScadenzaPatente|date('Y-m-d') : '',
+                        null,
+                        p.intestatario.email
+                    ) }}
                 </td>
             </tr>
         {% endfor %}
@@ -348,6 +398,65 @@
 
 {% block javascripts %}
 <script>
+// ── WhatsApp: validazione numero + apertura wa.me ─────────────────────────
+function normalizzaTelefono(raw) {
+    // Rimuove spazi, trattini, punti, parentesi
+    let tel = raw.replace(/[\s\-\.\(\)\/]/g, '');
+    // Gestisce prefissi già presenti
+    if (tel.startsWith('0039'))     tel = '+39' + tel.slice(4);
+    else if (tel.startsWith('39') && !tel.startsWith('+')) tel = '+39' + tel.slice(2);
+    else if (!tel.startsWith('+')) tel = '+39' + tel;
+    // Valida: +39 seguito da 9-10 cifre
+    return /^\+39\d{9,10}$/.test(tel) ? tel : null;
+}
+
+function inviaWhatsApp(btn) {
+    const anaId = btn.dataset.waAna;
+    const tipo  = btn.dataset.waTipo;
+    const data  = btn.dataset.waData;
+    const targa = btn.dataset.waTarga || '';
+
+    // Recupera il telefono dalla cella della stessa riga (2a colonna, indice 1)
+    const row   = btn.closest('tr');
+    const raw   = row ? (row.cells[1]?.textContent?.trim() ?? '') : '';
+
+    if (!raw) {
+        alert('Nessun numero di telefono registrato per questo cliente.\nAggiornalo nell\'anagrafica.');
+        return;
+    }
+
+    const numero = normalizzaTelefono(raw);
+    if (!numero) {
+        alert(
+            'Il numero "' + raw + '" non è valido.\n\n' +
+            'Il formato corretto è: 333 123 4567 oppure +39 333 123 4567\n\n' +
+            'Correggi il telefono nell\'anagrafica del cliente e riprova.'
+        );
+        return;
+    }
+
+    // Chiama il server per generare l\'URL e registrare la notifica
+    const url = '{{ path('app_notifica_invia_whatsapp') }}'
+        + '?anaId=' + encodeURIComponent(anaId)
+        + '&tipo='  + encodeURIComponent(tipo)
+        + '&data='  + encodeURIComponent(data)
+        + '&targa=' + encodeURIComponent(targa);
+
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(r => r.json())
+        .then(json => {
+            if (json.error) {
+                alert('Errore: ' + json.error);
+            } else {
+                window.open(json.url, '_blank');
+                // Feedback visivo: colora brevemente il bottone
+                btn.classList.replace('btn-success', 'btn-outline-success');
+                setTimeout(() => btn.classList.replace('btn-outline-success', 'btn-success'), 3000);
+            }
+        })
+        .catch(() => alert('Errore di rete. Riprova.'));
+}
+
 // ── Helper date ──────────────────────────────────────────────────────────
 function today() {
     return new Date().toISOString().split('T')[0];

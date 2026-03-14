@@ -1,4 +1,44 @@
-{{ form_start(form) }}
-    {{ form_widget(form) }}
-    <button class="btn">{{ button_label|default('Save') }}</button>
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'class': 'needs-validation', 'id': 'anagrafica-form'}}) }}
+    <div class="row g-3">
+        <div class="col-md-6">{{ form_row(form.cognome, {'attr': {'class': 'form-control'}}) }}</div>
+        <div class="col-md-6">{{ form_row(form.nome,    {'attr': {'class': 'form-control'}}) }}</div>
+        <div class="col-md-4">{{ form_row(form.tipo,    {'attr': {'class': 'form-select'}}) }}</div>
+        <div class="col-md-8">{{ form_row(form.luogoNascita, {'attr': {'class': 'form-control'}}) }}</div>
+        <div class="col-md-4">{{ form_row(form.codiceFiscale, {'attr': {'class': 'form-control text-uppercase', 'maxlength': '16', 'pattern': '[A-Za-z0-9]{16}', 'title': 'Codice fiscale: 16 caratteri alfanumerici'}}) }}</div>
+        <div class="col-md-4">{{ form_row(form.partitaIva,   {'attr': {'class': 'form-control', 'maxlength': '11', 'pattern': '[0-9]{11}', 'title': 'Partita IVA: 11 cifre'}}) }}</div>
+        <div class="col-md-4">{{ form_row(form.codiceDestinatario, {'attr': {'class': 'form-control'}}) }}</div>
+        <div class="col-md-6">{{ form_row(form.telefono, {'attr': {'class': 'form-control', 'type': 'tel'}}) }}</div>
+        <div class="col-md-6">{{ form_row(form.email,    {'attr': {'class': 'form-control', 'type': 'email'}}) }}</div>
+        <div class="col-12">{{ form_row(form.residenza,  {'attr': {'class': 'form-control'}}) }}</div>
+        <div class="col-12">{{ form_row(form.sedeLegale, {'attr': {'class': 'form-control'}}) }}</div>
+        <div class="col-12">{{ form_row(form.note,       {'attr': {'class': 'form-control', 'rows': '3'}}) }}</div>
+    </div>
+
+    <div class="mt-3 d-flex gap-2">
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg me-1"></i>{{ button_label|default('Salva') }}
+        </button>
+        <a href="{{ path('app_anagrafica_index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-lg me-1"></i>Annulla
+        </a>
+    </div>
 {{ form_end(form) }}
+
+<script>
+(function () {
+    'use strict';
+    var form = document.getElementById('anagrafica-form');
+    if (!form) return;
+    // Bootstrap 5 – validazione client-side con feedback visivo
+    form.addEventListener('submit', function (event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    }, false);
+    // Uppercase automatico per codice fiscale
+    var cf = form.querySelector('[maxlength="16"]');
+    if (cf) cf.addEventListener('input', function () { this.value = this.value.toUpperCase(); });
+})();
+</script>

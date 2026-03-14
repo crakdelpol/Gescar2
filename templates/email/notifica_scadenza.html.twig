@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body      { font-family: Arial, sans-serif; background:#f4f4f4; margin:0; padding:0; }
+  .wrap     { max-width:580px; margin:30px auto; background:#ffffff; border-radius:6px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,.1); }
+  .header   { background:#1a3a5c; color:#ffffff; padding:24px 32px; }
+  .header h1{ margin:0; font-size:20px; font-weight:700; }
+  .body     { padding:28px 32px; color:#333333; line-height:1.6; }
+  .body p   { margin:0 0 14px; }
+  .alert    { background:#fff3cd; border-left:4px solid #ffc107; padding:12px 16px; border-radius:4px; margin:18px 0; }
+  .alert strong { color:#856404; }
+  .badge    { display:inline-block; padding:4px 10px; border-radius:20px; font-size:13px; font-weight:600; color:#fff; }
+  .badge-revisione     { background:#0d6efd; }
+  .badge-assicurazione { background:#ffc107; color:#333; }
+  .badge-bollo         { background:#0dcaf0; color:#333; }
+  .badge-patente       { background:#6c757d; }
+  .footer   { background:#f0f0f0; padding:16px 32px; font-size:12px; color:#888; text-align:center; border-top:1px solid #e0e0e0; }
+  .cta      { display:inline-block; margin-top:8px; padding:10px 22px; background:#1a3a5c; color:#ffffff; text-decoration:none; border-radius:4px; font-weight:600; font-size:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <h1>{{ nome_centro }}</h1>
+  </div>
+
+  <div class="body">
+    <p>Gentile <strong>{{ anagrafica.cognome }} {{ anagrafica.nome }}</strong>,</p>
+
+    {% if tipo == 'revisione' %}
+      <p>La informiamo che la <strong>revisione periodica</strong> del suo veicolo
+        {% if targa %}<strong>(targa {{ targa }})</strong>{% endif %}
+        è in scadenza.</p>
+      <div class="alert">
+        <strong>⚠️ Scadenza revisione:</strong>
+        {{ data ? data|date('d/m/Y') : 'prossimamente' }}
+      </div>
+      <p>La revisione periodica è obbligatoria per legge. Le consigliamo di prenotare con anticipo per evitare qualsiasi inconveniente.</p>
+
+    {% elseif tipo == 'assicurazione' %}
+      <p>La informiamo che l'<strong>assicurazione RC Auto</strong> del suo veicolo
+        {% if targa %}<strong>(targa {{ targa }})</strong>{% endif %}
+        è in scadenza.</p>
+      <div class="alert">
+        <strong>⚠️ Scadenza assicurazione:</strong>
+        {{ data ? data|date('d/m/Y') : 'prossimamente' }}
+      </div>
+      <p>Circolare senza assicurazione valida è un reato. Le consigliamo di contattare il suo assicuratore per il rinnovo prima della data di scadenza.</p>
+
+    {% elseif tipo == 'bollo' %}
+      <p>La informiamo che il <strong>bollo auto</strong> del suo veicolo
+        {% if targa %}<strong>(targa {{ targa }})</strong>{% endif %}
+        è in scadenza.</p>
+      <div class="alert">
+        <strong>⚠️ Scadenza bollo:</strong>
+        {{ data ? data|date('d/m/Y') : 'prossimamente' }}
+      </div>
+      <p>Ricordi di provvedere al pagamento entro la scadenza per evitare sanzioni. Il bollo può essere pagato online, in tabaccheria o in banca.</p>
+
+    {% elseif tipo == 'patente' %}
+      <p>La informiamo che la sua <strong>patente di guida</strong> è in scadenza.</p>
+      <div class="alert">
+        <strong>⚠️ Scadenza patente:</strong>
+        {{ data ? data|date('d/m/Y') : 'prossimamente' }}
+      </div>
+      <p>La invitiamo a contattarci per avviare la pratica di rinnovo con il dovuto anticipo. Il rinnovo richiede la visita medica presso un'apposita commissione.</p>
+
+    {% else %}
+      <p>Ha una <strong>scadenza imminente</strong> che richiede la sua attenzione.</p>
+      <div class="alert">
+        <strong>⚠️ Data di scadenza:</strong>
+        {{ data ? data|date('d/m/Y') : 'prossimamente' }}
+      </div>
+    {% endif %}
+
+    <p>Per informazioni, chiarimenti o prenotazioni siamo a sua disposizione.</p>
+
+    <p>Cordiali saluti,<br><strong>{{ nome_centro }}</strong></p>
+  </div>
+
+  <div class="footer">
+    Questa email è stata inviata automaticamente da {{ nome_centro }}.<br>
+    Non rispondere a questa email — contattaci direttamente per assistenza.
+  </div>
+
+</div>
+</body>
+</html>

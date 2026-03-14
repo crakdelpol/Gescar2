@@ -1,62 +1,132 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Vettura{% endblock %}
+{% block title %}{{ vettura.targa ?: 'Veicolo #' ~ vettura.id }} – Veicoli{% endblock %}
 
 {% block body %}
-    <h1>Vettura</h1>
+<div class="d-flex justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-car-front me-2 text-secondary"></i>
+        <strong>{{ vettura.targa ?: '—' }}</strong>
+        <span class="text-muted fw-normal ms-2">{{ vettura.marca }} {{ vettura.modello }}</span>
+        {% if vettura.esenteRevisione %}
+            <span class="badge bg-secondary ms-2"><i class="bi bi-shield-check me-1"></i>Esente revisione</span>
+        {% endif %}
+    </h1>
+    <div class="d-flex gap-2">
+        <a href="{{ path('app_vettura_index') }}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Lista
+        </a>
+        <a href="{{ path('app_vettura_edit', {'id': vettura.id}) }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-pencil me-1"></i>Modifica
+        </a>
+    </div>
+</div>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>Id</th>
-                <td>{{ vettura.id }}</td>
-            </tr>
-            <tr>
-                <th>Targa</th>
-                <td>{{ vettura.targa }}</td>
-            </tr>
-            <tr>
-                <th>NumeroTelaio</th>
-                <td>{{ vettura.numeroTelaio }}</td>
-            </tr>
-            <tr>
-                <th>Tipo</th>
-                <td>{{ vettura.tipo }}</td>
-            </tr>
-            <tr>
-                <th>Marca</th>
-                <td>{{ vettura.marca }}</td>
-            </tr>
-            <tr>
-                <th>Modello</th>
-                <td>{{ vettura.modello }}</td>
-            </tr>
-            <tr>
-                <th>Carburante</th>
-                <td>{{ vettura.carburante }}</td>
-            </tr>
-            <tr>
-                <th>Data Ultima Revisione</th>
-                <td>{{ vettura.dataUltimaRevisione ? vettura.dataUltimaRevisione|date('Y-m-d') : '' }}</td>
-            </tr>
-            <tr>
-                <th>Data Scadenza Revisione</th>
-                <td>{{ vettura.dataScadenzaRevisione ? vettura.dataScadenzaRevisione|date('Y-m-d') : '' }}</td>
-            </tr>
-                        <tr>
-                <th>Data Scadenza Impianto</th>
-                <td>{{ vettura.dataScadenzaImpianto ? vettura.dataScadenzaImpianto|date('Y-m-d') : '' }}</td>
-            </tr>
-            <tr>
-                <th>Note</th>
-                <td>{{ vettura.note }}</td>
-            </tr>
-        </tbody>
-    </table>
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-car-front me-1"></i>Dati veicolo
+            </div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-muted">Targa</dt>
+                    <dd class="col-sm-7"><strong>{{ vettura.targa ?: '–' }}</strong></dd>
 
-    <a href="{{ path('app_vettura_index') }}">back to list</a>
+                    <dt class="col-sm-5 text-muted">Numero telaio</dt>
+                    <dd class="col-sm-7"><code>{{ vettura.numeroTelaio ?: '–' }}</code></dd>
 
-    <a href="{{ path('app_vettura_edit', {'id': vettura.id}) }}">edit</a>
+                    <dt class="col-sm-5 text-muted">Tipo</dt>
+                    <dd class="col-sm-7">{{ vettura.tipo | capitalize ?: '–' }}</dd>
 
+                    <dt class="col-sm-5 text-muted">Marca</dt>
+                    <dd class="col-sm-7">{{ vettura.marca ?: '–' }}</dd>
+
+                    <dt class="col-sm-5 text-muted">Modello</dt>
+                    <dd class="col-sm-7">{{ vettura.modello ?: '–' }}</dd>
+
+                    <dt class="col-sm-5 text-muted">Carburante</dt>
+                    <dd class="col-sm-7">{{ vettura.carburante | capitalize ?: '–' }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header fw-semibold">
+                <i class="bi bi-calendar-check me-1"></i>Scadenze
+            </div>
+            <div class="card-body">
+                {% set oggi = "now"|date("Y-m-d") %}
+                <dl class="row mb-0">
+                    <dt class="col-sm-6 text-muted">Ultima revisione</dt>
+                    <dd class="col-sm-6">{{ vettura.dataUltimaRevisione ? vettura.dataUltimaRevisione|date('d/m/Y') : '–' }}</dd>
+
+                    <dt class="col-sm-6 text-muted">Scad. revisione</dt>
+                    <dd class="col-sm-6">
+                        {% if vettura.dataScadenzaRevisione %}
+                            {% set scad = vettura.dataScadenzaRevisione|date("Y-m-d") %}
+                            {% if scad < oggi %}
+                                <span class="badge bg-danger">{{ vettura.dataScadenzaRevisione|date('d/m/Y') }}</span>
+                            {% elseif scad < ("now +30 days")|date("Y-m-d") %}
+                                <span class="badge bg-warning text-dark">{{ vettura.dataScadenzaRevisione|date('d/m/Y') }}</span>
+                            {% else %}
+                                <span class="badge bg-success">{{ vettura.dataScadenzaRevisione|date('d/m/Y') }}</span>
+                            {% endif %}
+                        {% else %}–{% endif %}
+                    </dd>
+
+                    <dt class="col-sm-6 text-muted">Scad. impianto GPL/metano</dt>
+                    <dd class="col-sm-6">
+                        {% if vettura.dataScadenzaImpianto %}
+                            {% set scad_imp = vettura.dataScadenzaImpianto|date("Y-m-d") %}
+                            {% if scad_imp < oggi %}
+                                <span class="badge bg-danger">{{ vettura.dataScadenzaImpianto|date('d/m/Y') }}</span>
+                            {% else %}
+                                <span class="badge bg-info text-dark">{{ vettura.dataScadenzaImpianto|date('d/m/Y') }}</span>
+                            {% endif %}
+                        {% else %}–{% endif %}
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    {% if vettura.intestatario %}
+    <div class="col-12">
+        <div class="card border-start border-primary border-3">
+            <div class="card-body py-2 d-flex align-items-center gap-3">
+                <i class="bi bi-person-circle fs-4 text-primary"></i>
+                <div>
+                    <span class="text-muted small">Intestatario</span><br>
+                    <a href="{{ path('app_anagrafica_show', {'id': vettura.intestatario.id}) }}" class="fw-semibold text-decoration-none">
+                        {{ vettura.intestatario.cognome | capitalize }} {{ vettura.intestatario.nome | capitalize }}
+                    </a>
+                    {% if vettura.intestatario.telefono %}
+                        &nbsp;·&nbsp;
+                        <a href="tel:{{ vettura.intestatario.telefono }}" class="text-decoration-none text-muted">
+                            <i class="bi bi-telephone me-1"></i>{{ vettura.intestatario.telefono }}
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if vettura.note %}
+    <div class="col-12">
+        <div class="alert alert-light border d-flex align-items-start gap-2 mb-0">
+            <i class="bi bi-sticky text-warning mt-1"></i>
+            <span>{{ vettura.note }}</span>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<hr>
+<div class="d-flex align-items-center gap-2">
     {{ include('vettura/_delete_form.html.twig') }}
+</div>
 {% endblock %}
