@@ -109,12 +109,11 @@ Stato: **✅ Maggior parte conforme — 1 anti-pattern aperto**
 - **Priorità:** Molto bassa
 - **Stato:** ⚠️ Aperto
 
-#### OPEN-05 — `VetturaType` mostra solo `cognome` nel choice label intestatario
+#### OPEN-05 — `VetturaType` mostra solo `cognome` nel choice label intestatario ✅ RISOLTO 2026-03-14
 - **File:** `src/Form/VetturaType.php`
-- **Descrizione:** Per clienti con stesso cognome è impossibile distinguerli senza il nome.
-- **Fix suggerito:** `choice_label` come closure: `fn(Anagrafica $a) => ($a->getCognome() ?? '') . ' ' . ($a->getNome() ?? '')`
-- **Priorità:** Media (UX)
-- **Stato:** ⚠️ Aperto
+- **Descrizione:** Il campo `choice_label` mostrava solo `cognome`, rendendo impossibile distinguere clienti con lo stesso cognome.
+- **Fix applicato:** `choice_label` sostituito con closure `fn(Anagrafica $a) => trim(($a->getCognome() ?? '') . ' ' . ($a->getNome() ?? ''))` — mostra "Rossi Mario" invece di "Rossi". Il `trim()` gestisce i casi con nome o cognome null.
+- **Stato:** ✅ Risolto
 
 ---
 

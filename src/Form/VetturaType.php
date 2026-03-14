@@ -65,8 +65,8 @@ class VetturaType extends AbstractType
             ))
             ->add('note', TextareaType::class, array('required' => false))
             ->add('intestatario', EntityType::class, [
-                'class' => Anagrafica::class,
-                'choice_label' => 'cognome',
+                'class'        => Anagrafica::class,
+                'choice_label' => fn(Anagrafica $a) => trim(($a->getCognome() ?? '') . ' ' . ($a->getNome() ?? '')),
             ])
             //->add('salva', SubmitType::class)
         ;
