@@ -50,7 +50,7 @@ class NotificaService
      * Verifica se il cliente è già stato avvisato per questo tipo di scadenza
      * negli ultimi N giorni.
      */
-    public function èGiàAvvisato(
+    public function isGiaAvvisato(
         Anagrafica $anagrafica,
         string     $tipoScadenza,
         int        $giorni = 7

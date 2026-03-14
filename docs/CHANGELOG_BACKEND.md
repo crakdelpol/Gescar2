@@ -103,11 +103,11 @@ Stato: **✅ Maggior parte conforme — 1 anti-pattern aperto**
 - **Fix applicato:** Rinominati in `luogoNascita`, `codiceFiscale`, `partitaIva`, `sedeLegale`. Il template `anagrafica/_form.html.twig` usava già i nomi camelCase — nessuna modifica al template necessaria.
 - **Stato:** ✅ Risolto
 
-#### OPEN-04 — `NotificaService::èGiàAvvisato` usa carattere non-ASCII nel nome
-- **File:** `src/Service/NotificaService.php`
-- **Descrizione:** Il metodo contiene `è` (U+00E8). Funziona in PHP, ma può causare problemi con alcuni tool di analisi statica o IDE non UTF-8.
-- **Priorità:** Molto bassa
-- **Stato:** ⚠️ Aperto
+#### OPEN-04 — `NotificaService::èGiàAvvisato` usa carattere non-ASCII nel nome ✅ RISOLTO 2026-03-14
+- **File:** `src/Service/NotificaService.php`, `CONTEXT.md`
+- **Descrizione:** Il nome del metodo conteneva `è` (U+00E8), incompatibile con tool di analisi statica e IDE non UTF-8.
+- **Fix applicato:** Rinominato in `isGiaAvvisato` (prefisso `is` convenzionale per metodi bool in PHP, tutto ASCII). Il metodo non era chiamato da nessuna parte — solo la definizione e la documentazione in `CONTEXT.md` aggiornate.
+- **Stato:** ✅ Risolto
 
 #### OPEN-05 — `VetturaType` mostra solo `cognome` nel choice label intestatario ✅ RISOLTO 2026-03-14
 - **File:** `src/Form/VetturaType.php`

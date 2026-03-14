@@ -237,7 +237,7 @@ Passato al template come variabile `scadenzaService` per usarlo direttamente in 
 ### NotificaService (`src/Service/NotificaService.php`)
 ```php
 $notificaService->registra($anagrafica, $tipo, $canale, $esito, $note, $vettura, $utente);
-$notificaService->èGiàAvvisato($anagrafica, $tipo, $giorni = 7);  // bool
+$notificaService->isGiaAvvisato($anagrafica, $tipo, $giorni = 7);  // bool
 $notificaService->getStoricoCliente($anagrafica);
 $notificaService->getRecenti($giorni = 7);
 ```
