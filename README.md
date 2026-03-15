@@ -4,20 +4,20 @@ Applicazione web per la gestione di clienti, veicoli e scadenze del **Centro Rev
 
 ---
 
-## Cosa fa
+## Cosa fa  
 
 Gescar permette agli operatori del centro di tenere sotto controllo tutte le scadenze dei clienti in un'unica interfaccia, senza fogli Excel o appunti sparsi.
 
-**Clienti e veicoli**
+**Clienti e veicoli**  
 Ogni cliente ha una scheda con tutti i suoi veicoli, le scadenze attive e lo storico completo degli avvisi ricevuti. La ricerca funziona per nome, cognome o targa direttamente dalla barra di navigazione.
 
-**Scadenze con semaforo**
+**Scadenze con semaforo**  
 Il cuore dell'app è la dashboard: un colpo d'occhio su cosa scade nei prossimi giorni. Ogni scadenza ha un badge colorato — rosso per le già scadute, giallo per quelle imminenti, blu per quelle in avvicinamento, verde per quelle ok. Funziona per revisioni, assicurazioni, bolli, patenti e collaudi impianto GPL/metano.
 
-**Notifiche ai clienti**
+**Notifiche ai clienti**  
 Gli operatori registrano ogni contatto con il cliente (telefonata, SMS, email, WhatsApp) e il relativo esito. Il sistema può inviare email e messaggi WhatsApp direttamente dall'interfaccia, con registrazione automatica nel log.
 
-**Accesso sicuro**
+**Accesso sicuro**  
 L'applicazione è accessibile solo agli operatori autorizzati. Due livelli di accesso: operatore standard e super amministratore.
 
 ---
