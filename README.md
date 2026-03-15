@@ -1,71 +1,33 @@
-# Gescar – Gestionale Centro Revisioni
+# Gescar — Gestionale Centro Revisioni
 
-Web application per la gestione di clienti, veicoli e scadenze (revisioni, assicurazioni, bolli, patenti) del Centro Revisioni Charlot.
-
-> [github.com/CarloGagliolo/Gescar2](https://github.com/CarloGagliolo/Gescar2) · Uso interno · Proprietaria
+Applicazione web per la gestione di clienti, veicoli e scadenze del **Centro Revisioni Charlot**.
 
 ---
 
-## Stack
+## Cosa fa
 
-| Layer | Tecnologia | Versione |
-|---|---|---|
-| Framework | Symfony | 7.3 |
-| Database | MySQL | 8.0 (Docker) / 5.7 (prod) |
-| ORM | Doctrine ORM | 3.x |
-| Frontend | Bootstrap | 5.3 CDN |
-| Auth | Symfony Security | nativo |
+Gescar permette agli operatori del centro di tenere sotto controllo tutte le scadenze dei clienti in un'unica interfaccia, senza fogli Excel o appunti sparsi.
 
----
+**Clienti e veicoli**
+Ogni cliente ha una scheda con tutti i suoi veicoli, le scadenze attive e lo storico completo degli avvisi ricevuti. La ricerca funziona per nome, cognome o targa direttamente dalla barra di navigazione.
 
-## Setup rapido
+**Scadenze con semaforo**
+Il cuore dell'app è la dashboard: un colpo d'occhio su cosa scade nei prossimi giorni. Ogni scadenza ha un badge colorato — rosso per le già scadute, giallo per quelle imminenti, blu per quelle in avvicinamento, verde per quelle ok. Funziona per revisioni, assicurazioni, bolli, patenti e collaudi impianto GPL/metano.
 
-```bash
-git clone https://github.com/CarloGagliolo/Gescar2.git && cd Gescar2
-docker compose up -d          # MySQL 8.0 · phpMyAdmin :8080 · Mailpit :8025
-composer install
-cp .env.local.dist .env.local  # inserire APP_SECRET e credenziali DB
-php bin/console doctrine:database:create
-php bin/console doctrine:migrations:migrate
-symfony server:start
-```
+**Notifiche ai clienti**
+Gli operatori registrano ogni contatto con il cliente (telefonata, SMS, email, WhatsApp) e il relativo esito. Il sistema può inviare email e messaggi WhatsApp direttamente dall'interfaccia, con registrazione automatica nel log.
 
-Inserire il primo utente admin via phpMyAdmin o SQL diretto (vedi [wiki/Setup-e-Installazione](wiki/Setup-e-Installazione.md)).
-
----
-
-## Funzionalità principali
-
-- Anagrafica clienti con ricerca per nome/cognome e targa
-- Gestione veicoli (revisione, assicurazione, bollo, impianto GPL/metano, esente revisione)
-- Dashboard scadenze imminenti con badge semaforo
-- Registro notifiche (telefono, SMS, email, WhatsApp) con invio automatico
-- Autenticazione con ruoli `ROLE_ADMIN` / `ROLE_SUPER_ADMIN`
+**Accesso sicuro**
+L'applicazione è accessibile solo agli operatori autorizzati. Due livelli di accesso: operatore standard e super amministratore.
 
 ---
 
 ## Documentazione
 
-| File | Contenuto |
-|---|---|
-| `docs/01_PROJECT_OVERVIEW.md` | Descrizione dominio e obiettivi |
-| `docs/02_DATABASE_SCHEMA.md` | Schema DB e relazioni |
-| `docs/03_BUSINESS_RULES.md` | Regole di business |
-| `docs/04_ROADMAP.md` | Roadmap e changelog |
-| `docs/05_CODING_CONVENTIONS.md` | Convenzioni di sviluppo |
-| `docs/06_BUNDLE_VERSIONS.md` | Versioni dipendenze installate |
-| `docs/07_ARCHITECTURE_DECISIONS.md` | ADR – scelte architetturali |
-| `CONTEXT.md` | Contesto rapido per sessioni AI |
-| `wiki/` | Wiki navigabile (replica GitHub Wiki) |
+La documentazione tecnica completa è nella cartella [`docs/`](docs/) e nella [Wiki](../../wiki).
 
 ---
 
-## Prossimi step
+## Licenza
 
-- `telefono2` su entity Anagrafica
-- Paginazione liste
-- Upgrade MySQL → 8.4 LTS (prod) e Symfony → 7.4 LTS
-- DataFixtures con User e Notifica
-- Export CSV/Excel scadenze
-
-Vedi `docs/04_ROADMAP.md` per il dettaglio.
+Uso interno — Centro Revisioni Charlot. Tutti i diritti riservati.

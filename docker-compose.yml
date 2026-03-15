@@ -1,3 +1,8 @@
+# ⚠️  SOLO SVILUPPO LOCALE — Non usare questo file in produzione.
+# Le credenziali qui sotto sono di default per l'ambiente Docker locale.
+# In produzione usare credenziali forti e uniche, mai le stesse di questo file.
+# Non esporre mai le porte 3306 e 8080 su internet.
+
 services:
 
   # ── MySQL 8.0 ────────────────────────────────────────────────────────────
