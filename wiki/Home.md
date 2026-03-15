@@ -13,7 +13,9 @@ Benvenuto nella documentazione tecnica del gestionale **Gescar** per il Centro R
 | [Controller e Route](Controller-e-Route) | Mappa completa route → controller → template |
 | [Convenzioni di Sviluppo](Convenzioni-di-Sviluppo) | Naming, ORM, Bootstrap, Service vs Repository |
 | [Gestione Scadenze](Gestione-Scadenze) | Logica semaforo, soglie, ScadenzaService |
-| [Roadmap](Roadmap) | Task aperti prioritizzati |
+| [Roadmap](Roadmap) | Task completati e prossimi sviluppi |
+
+Per la documentazione interna completa (bundle versions, roadmap dettagliata, business rules) vedi la cartella `docs/` nel repository.
 
 ---
 

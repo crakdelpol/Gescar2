@@ -51,6 +51,12 @@ dump_*.sql
 /.agents/
 /CONTEXT.md
 
+# Documentazione interna — NON esporre su GitHub.
+# Questi file elencano vulnerabilità note, weakness architetturali e sviluppi di
+# sicurezza non ancora implementati. Mantenerli solo in locale. Mai committare.
+/docs/07_ARCHITECTURE_DECISIONS.md
+/docs/08_SVILUPPI_FUTURI.md
+
 # Build assets
 /public/build/
 /node_modules/

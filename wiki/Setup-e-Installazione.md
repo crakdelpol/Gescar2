@@ -45,18 +45,12 @@ composer install
 cp .env.local.dist .env.local
 ```
 
-Apri `.env.local` e:
+Apri `.env.local` e imposta i valori reali per il tuo ambiente. In particolare:
 - Genera `APP_SECRET`: `php -r "echo bin2hex(random_bytes(16));"`
-- Verifica `DATABASE_URL` (già preconfigurata per Docker)
+- Imposta `DATABASE_URL` con le credenziali che hai scelto in `docker-compose.yml`
+- Imposta `MAILER_DSN` (in sviluppo punta a Mailpit, in produzione al server SMTP reale)
 
-```env
-APP_ENV=dev
-APP_SECRET=<genera_qui>
-DATABASE_URL="mysql://gescar_user:gescar_pass@127.0.0.1:3306/gescar_new_local?serverVersion=8.0&charset=utf8mb4"
-MAILER_DSN=smtp://localhost:1025
-```
-
-> ⚠️ `.env.local` è escluso da `.gitignore` — non committarlo mai.
+> ⚠️ `.env.local` è escluso da `.gitignore` — non committarlo mai. Contiene le credenziali reali.
 
 ### 5. Crea il database ed esegui le migrazioni
 
@@ -73,17 +67,10 @@ php bin/console doctrine:migrations:migrate
 php bin/console security:hash-password
 ```
 
-Inserisci la password desiderata, copia l'hash e inserisci l'utente:
+Inserisci la password desiderata, copia l'hash generato, poi inserisci il record nel DB tramite phpMyAdmin o shell MySQL usando le credenziali definite nel tuo `.env.local`.
 
-```bash
-docker exec -it gescar_db mysql -u gescar_user -pgescar_pass gescar_new_local
-```
-
-```sql
-INSERT INTO user (email, roles, password, nome, cognome, is_active)
-VALUES ('admin@gescar.local', '["ROLE_SUPER_ADMIN"]', 'HASH_QUI', 'Carlo', 'Admin', 1);
-EXIT;
-```
+> ⚠️ Usa una password robusta (min. 12 caratteri, mista maiuscole/minuscole/numeri/simboli).
+> Non riutilizzare la password di altri account.
 
 ### 7. (Opzionale) Carica dati di test
 
@@ -92,6 +79,7 @@ php bin/console doctrine:fixtures:load --no-interaction
 ```
 
 > ⚠️ Le fixtures svuotano il DB — ricrea l'utente admin dopo.
+> Non eseguire mai le fixtures in produzione.
 
 ### 8. Avvia il server
 
@@ -105,14 +93,13 @@ Apri http://localhost:8000 e accedi con le credenziali create al passo 6.
 
 ---
 
-## Credenziali Docker
+## Credenziali Docker (sviluppo locale)
 
-| Parametro | Valore |
-|---|---|
-| Host DB | `127.0.0.1:3306` |
-| Database | `gescar_new_local` |
-| Utente app | `gescar_user` / `gescar_pass` |
-| Utente root | `root` / `root` |
+Le credenziali Docker di default sono definite in `docker-compose.yml`.
+
+> ⚠️ **Le credenziali di default sono solo per sviluppo locale.**
+> In produzione usare credenziali forti e uniche, mai condivise con l'ambiente di sviluppo.
+> Non committare mai le credenziali reali nel repository.
 
 ---
 
@@ -126,6 +113,6 @@ make fixtures     # carica dati di test
 make db-reset     # drop → create → migrate → fixtures
 make cache        # svuota cache Symfony
 make routes       # mostra tutte le route
-make db-shell     # shell MySQL come gescar_user
+make db-shell     # shell MySQL
 make open-pma     # apre phpMyAdmin (Windows)
 ```

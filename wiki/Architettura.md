@@ -23,10 +23,16 @@ Gescar2/
 ├── config/
 │   └── packages/
 │       ├── doctrine.yaml          ← MySQL, naming underscore
-│       ├── security.yaml          ← login form, bcrypt cost 13
+│       ├── security.yaml          ← autenticazione Symfony Security nativo
 │       ├── monolog.yaml           ← logging su file
 │       └── ...
-├── docs/                          ← documentazione di progetto
+├── docs/                          ← documentazione di progetto (solo docs pubbliche)
+│   ├── 01_PROJECT_OVERVIEW.md
+│   ├── 02_DATABASE_SCHEMA.md
+│   ├── 03_BUSINESS_RULES.md
+│   ├── 04_ROADMAP.md
+│   ├── 05_CODING_CONVENTIONS.md
+│   └── 06_BUNDLE_VERSIONS.md
 ├── migrations/                    ← Doctrine migrations (000→005)
 ├── public/                        ← document root
 │   ├── css/custom.css
@@ -37,12 +43,14 @@ Gescar2/
 │   ├── Form/
 │   ├── Repository/
 │   └── Service/
+│       ├── ScadenzaService.php    ← stati semaforo scadenze
+│       ├── NotificaService.php    ← registro avvisi
+│       └── NotificaInvioService.php ← invio email e WhatsApp
 ├── templates/
 ├── wiki/                          ← pagine wiki (questa cartella)
 ├── docker-compose.yml
 ├── Makefile
-├── .env.local.dist
-└── CONTEXT.md
+└── .env.local.dist                ← template variabili ambiente (senza credenziali reali)
 ```
 
 ---
@@ -115,7 +123,7 @@ data_scadenza_patente, note
 ### User → `user`
 
 ```
-id, email UNIQUE, roles (JSON), password (bcrypt),
+id, email UNIQUE, roles (JSON), password (hash),
 nome, cognome, is_active
 ```
 

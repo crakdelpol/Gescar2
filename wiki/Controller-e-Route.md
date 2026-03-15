@@ -40,7 +40,7 @@ La pagina principale mostra revisioni, assicurazioni, bolli e patenti nel period
 | `app_anagrafica_edit` | `/anagrafica/{id}/edit` | AnagraficaController::edit | anagrafica/edit |
 | `app_anagrafica_delete` | `/anagrafica/{id}` DELETE | AnagraficaController::delete | — |
 
-> `app_anagrafica_index` supporta filtro `?q=` per ricerca globale (da collegare).
+> `app_anagrafica_index` supporta filtro `?q=` per ricerca globale. La navbar invia la ricerca su questo endpoint tramite `AnagraficaRepository::searchGlobale()` (cerca per nome, cognome e targa veicolo).
 
 ---
 
